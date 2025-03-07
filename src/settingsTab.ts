@@ -14,8 +14,6 @@ export class SettingsTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-        containerEl.createEl("h2", { text: "Send to canvas settings" });
-
         new Setting(containerEl)
             .setName("Default send format")
             .setDesc("Choose the default format when sending content to canvas")
@@ -48,7 +46,7 @@ export class SettingsTab extends PluginSettingTab {
             );
 
         // Add a heading for the startup delay section
-        containerEl.createEl("h3", { text: "Canvas file loading" });
+        new Setting(containerEl).setName("Canvas file loading").setHeading();
 
         // Add explanation about the startup delay
         const delayInfo = containerEl.createDiv("canvas-delay-info");
