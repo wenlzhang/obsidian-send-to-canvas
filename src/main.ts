@@ -66,8 +66,10 @@ export default class Main extends Plugin {
         this.statusBarItem = this.addStatusBarItem();
 
         // Wait for Obsidian to fully load all files before trying to find the canvas file
-        // Use a timeout to ensure all files are loaded
-        console.log("Setting up delayed canvas file loading");
+        // Use a timeout with the user-configurable delay
+        console.log(
+            `Setting up delayed canvas file loading (${this.settings.startupLoadDelay}ms delay)`,
+        );
         setTimeout(() => {
             console.log("Now loading canvas files after delay");
             this.loadCanvasFile();
@@ -84,7 +86,7 @@ export default class Main extends Plugin {
                     `Found ${canvasFiles.length} canvas files during startup.`,
                 );
             }
-        }, 5000); // 5 second delay to ensure files are loaded
+        }, this.settings.startupLoadDelay); // Use the configurable delay from settings
 
         // Add settings tab
         this.addSettingTab(new SettingsTab(this.app, this));

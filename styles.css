@@ -24,7 +24,7 @@
     margin: 8px 0;
 }
 
-/* Style for the status bar item */
+/* Status bar styling */
 .status-bar-item.has-canvas-selected {
     color: var(--text-accent);
     font-weight: 500;
@@ -33,4 +33,60 @@
 .status-bar-item.no-canvas-selected {
     color: var(--text-muted);
     font-style: italic;
+}
+
+.send-to-canvas-status {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 0 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.send-to-canvas-status:hover {
+    background-color: var(--interactive-hover);
+}
+
+.send-to-canvas-status.selected {
+    color: var(--text-accent);
+}
+
+.send-to-canvas-status.not-selected {
+    color: var(--text-muted);
+}
+
+/* Settings styling */
+.canvas-delay-info {
+    margin-bottom: 12px;
+}
+
+.canvas-delay-presets {
+    margin-bottom: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.canvas-delay-presets button {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    background-color: var(--interactive-normal);
+    border: 1px solid var(--background-modifier-border);
+    color: var(--text-normal);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.canvas-delay-presets button:hover {
+    background-color: var(--interactive-hover);
+}
+
+.canvas-delay-presets span {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-right: 4px;
 }
