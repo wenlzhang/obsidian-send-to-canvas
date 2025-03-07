@@ -346,7 +346,29 @@ export default class Main extends Plugin {
         if (!this.selectedCanvas) return;
 
         // Read the canvas file
-        const canvasContent = await this.app.vault.read(this.selectedCanvas);
+        let canvasContent: string;
+        try {
+            canvasContent = await this.app.vault.read(this.selectedCanvas);
+
+            // Check if the canvas content is empty or too short to be valid JSON
+            if (!canvasContent || canvasContent.trim().length < 2) {
+                // Initialize with empty canvas structure
+                canvasContent = JSON.stringify({ nodes: [], edges: [] });
+
+                // Save the initialized structure to the file
+                await this.app.vault.modify(this.selectedCanvas, canvasContent);
+                console.log(
+                    "Initialized empty canvas file with basic structure",
+                );
+            }
+        } catch (error) {
+            console.error("Error reading canvas file:", error);
+            new Notice(
+                `Failed to read canvas file: ${error.message || "Unknown error"}`,
+            );
+            return;
+        }
+
         let canvasData: CanvasData;
 
         try {
@@ -360,7 +382,12 @@ export default class Main extends Plugin {
             new Notice(
                 "Error parsing canvas file. It may not be in the expected format.",
             );
-            return;
+
+            // Try to recover by creating a new canvas structure
+            canvasData = { nodes: [], edges: [] };
+            console.log(
+                "Created new canvas data structure after parsing error",
+            );
         }
 
         // Determine the position for the new node
@@ -382,7 +409,9 @@ export default class Main extends Plugin {
         if (format === "plain") {
             newNode.text = content;
         } else if (format === "link") {
-            newNode.text = `[[${sourceFile.path}#^${blockId}|${content.split("\n")[0]}]]`;
+            newNode.text = `[[${sourceFile.path}#^${blockId}|${
+                content.split("\n")[0]
+            }]]`;
         } else if (format === "embed") {
             newNode.text = `![[${sourceFile.path}#^${blockId}]]`;
         }
@@ -408,7 +437,29 @@ export default class Main extends Plugin {
         if (!this.selectedCanvas) return;
 
         // Read the canvas file
-        const canvasContent = await this.app.vault.read(this.selectedCanvas);
+        let canvasContent: string;
+        try {
+            canvasContent = await this.app.vault.read(this.selectedCanvas);
+
+            // Check if the canvas content is empty or too short to be valid JSON
+            if (!canvasContent || canvasContent.trim().length < 2) {
+                // Initialize with empty canvas structure
+                canvasContent = JSON.stringify({ nodes: [], edges: [] });
+
+                // Save the initialized structure to the file
+                await this.app.vault.modify(this.selectedCanvas, canvasContent);
+                console.log(
+                    "Initialized empty canvas file with basic structure",
+                );
+            }
+        } catch (error) {
+            console.error("Error reading canvas file:", error);
+            new Notice(
+                `Failed to read canvas file: ${error.message || "Unknown error"}`,
+            );
+            return;
+        }
+
         let canvasData: CanvasData;
 
         try {
@@ -422,7 +473,12 @@ export default class Main extends Plugin {
             new Notice(
                 "Error parsing canvas file. It may not be in the expected format.",
             );
-            return;
+
+            // Try to recover by creating a new canvas structure
+            canvasData = { nodes: [], edges: [] };
+            console.log(
+                "Created new canvas data structure after parsing error",
+            );
         }
 
         // Determine the position for the new node
