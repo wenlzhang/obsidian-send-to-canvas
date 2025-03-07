@@ -11,7 +11,7 @@ import {
     FuzzySuggestModal,
 } from "obsidian";
 import { SettingsTab } from "./settingsTab";
-import { PluginSettings, DEFAULT_SETTINGS, SendFormat } from "./settings";
+import { SendToCanvasSettings, DEFAULT_SETTINGS, SendFormat } from "./settings";
 import { BlockReferenceUtils } from "./utils";
 
 // Canvas data structures based on Obsidian's Canvas API
@@ -55,7 +55,7 @@ interface CanvasData {
 }
 
 export default class Main extends Plugin {
-    settings: PluginSettings;
+    settings: SendToCanvasSettings;
     selectedCanvas: TFile | null = null;
     statusBarItem: HTMLElement;
 
@@ -357,37 +357,16 @@ export default class Main extends Plugin {
         let contentToSend = currentContent;
 
         try {
-            // Process content based on settings
-            if (this.settings.includeTagsInSend) {
-                // Extract tags if any in the selection
-                const tags = BlockReferenceUtils.extractTags(currentContent);
-                if (tags && tags.length > 0) {
-                    contentToSend += `\n\nTags: ${tags.join(", ")}`;
-                }
-            }
-
-            if (
-                this.settings.includeTaskPropertiesInSend &&
-                currentContent.includes("- [ ]")
-            ) {
-                // Process task properties
-                contentToSend =
-                    BlockReferenceUtils.processTaskProperties(contentToSend);
-            }
-
             // Create block reference for link and embed formats
             let blockId = "";
             if (format === "link" || format === "embed") {
                 blockId = await this.createBlockReference(
                     currentFile,
-                    selection,
+                    currentContent,
                 );
-                if (!blockId) {
-                    new Notice("Failed to create block reference");
-                    return;
-                }
             }
 
+            // Add the content to the canvas
             await this.addToCanvas(format, contentToSend, currentFile, blockId);
             new Notice(`Content sent to canvas: ${this.selectedCanvas.name}`);
         } catch (error) {

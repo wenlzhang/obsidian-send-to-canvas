@@ -1,6 +1,6 @@
-import { App, PluginSettingTab, Setting, DropdownComponent } from "obsidian";
-import type Main from "./main";
+import { App, PluginSettingTab, Setting } from "obsidian";
 import { SendFormat } from "./settings";
+import Main from "./main";
 
 export class SettingsTab extends PluginSettingTab {
     plugin: Main;
@@ -43,31 +43,6 @@ export class SettingsTab extends PluginSettingTab {
                         this.plugin.settings.rememberLastCanvas = value;
                         // Don't clear the lastCanvasPath when toggling off
                         // This allows the user to toggle it back on and have the last canvas still selected
-                        await this.plugin.saveSettings();
-                    }),
-            );
-
-        new Setting(containerEl)
-            .setName("Include tags in send")
-            .setDesc("Include tags when sending text to canvas")
-            .addToggle((toggle) =>
-                toggle
-                    .setValue(this.plugin.settings.includeTagsInSend)
-                    .onChange(async (value) => {
-                        this.plugin.settings.includeTagsInSend = value;
-                        await this.plugin.saveSettings();
-                    }),
-            );
-
-        new Setting(containerEl)
-            .setName("Include task properties in send")
-            .setDesc("Include task properties when sending tasks to canvas")
-            .addToggle((toggle) =>
-                toggle
-                    .setValue(this.plugin.settings.includeTaskPropertiesInSend)
-                    .onChange(async (value) => {
-                        this.plugin.settings.includeTaskPropertiesInSend =
-                            value;
                         await this.plugin.saveSettings();
                     }),
             );
