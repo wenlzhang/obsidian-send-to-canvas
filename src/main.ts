@@ -465,9 +465,11 @@ export default class Main extends Plugin {
             newNode.text = content;
         } else if (format === "link") {
             // Use a simpler format for block links without the display text part
-            newNode.text = `[[${sourceFile.path}#^${blockId}]]`;
+            // Use the file basename instead of the full path
+            newNode.text = `[[${sourceFile.basename}#^${blockId}]]`;
         } else if (format === "embed") {
-            newNode.text = `![[${sourceFile.path}#^${blockId}]]`;
+            // Use the file basename instead of the full path
+            newNode.text = `![[${sourceFile.basename}#^${blockId}]]`;
         }
 
         // Add the new node to the canvas
@@ -623,7 +625,7 @@ export default class Main extends Plugin {
         const newNode: CanvasTextNodeData = {
             id: this.generateNodeId(),
             type: "text",
-            text: `[[${noteFile.path}]]`,
+            text: `[[${noteFile.basename}]]`,
             position: {
                 x: newNodePosition.x,
                 y: newNodePosition.y,
