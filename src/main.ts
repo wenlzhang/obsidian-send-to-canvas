@@ -41,7 +41,7 @@ interface CanvasLinkNodeData extends CanvasNodeData {
     url: string;
 }
 
-interface CanvasEdge {
+interface CanvasEdgeData {
     id: string;
     fromNode: string;
     fromSide: string;
@@ -51,7 +51,7 @@ interface CanvasEdge {
 
 interface CanvasData {
     nodes: CanvasNodeData[];
-    edges: CanvasEdge[];
+    edges: CanvasEdgeData[];
 }
 
 export default class Main extends Plugin {
@@ -106,6 +106,15 @@ export default class Main extends Plugin {
             name: "Send current note to canvas",
             callback: () => {
                 this.sendCurrentNoteToCanvas();
+            },
+        });
+
+        // Add command to send note link to canvas
+        this.addCommand({
+            id: "send-note-link-to-canvas",
+            name: "Send note link to canvas",
+            callback: () => {
+                this.sendNoteAsLinkToCanvas();
             },
         });
 
@@ -286,6 +295,39 @@ export default class Main extends Plugin {
             console.error("Error sending note to canvas:", error);
             new Notice(
                 `Failed to send note to canvas: ${error.message || "Unknown error"}`,
+            );
+        }
+    }
+
+    async sendNoteAsLinkToCanvas() {
+        if (!this.selectedCanvas) {
+            new Notice("Please select a canvas file first");
+            this.selectCanvasFile();
+            return;
+        }
+
+        const currentView =
+            this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (!currentView) {
+            new Notice("No active markdown file");
+            return;
+        }
+
+        const currentFile = currentView.file;
+        if (!currentFile) {
+            new Notice("Could not determine the current file");
+            return;
+        }
+
+        try {
+            await this.addNoteAsLinkToCanvas(currentFile);
+            new Notice(`Note link sent to canvas: ${this.selectedCanvas.name}`);
+        } catch (error) {
+            console.error("Error sending note link to canvas:", error);
+            new Notice(
+                `Failed to send note link to canvas: ${
+                    error.message || "Unknown error"
+                }`,
             );
         }
     }
@@ -507,6 +549,87 @@ export default class Main extends Plugin {
             },
             width: 400,
             height: 400,
+        };
+
+        // Add the new node to the canvas
+        canvasData.nodes.push(newNode);
+
+        // Save the modified canvas
+        try {
+            await this.app.vault.modify(
+                this.selectedCanvas,
+                JSON.stringify(canvasData, null, 2),
+            );
+        } catch (error) {
+            console.error("Error saving canvas:", error);
+            new Notice(
+                `Failed to save canvas: ${error.message || "Unknown error"}`,
+            );
+        }
+    }
+
+    async addNoteAsLinkToCanvas(noteFile: TFile) {
+        if (!this.selectedCanvas) return;
+
+        // Read the canvas file
+        let canvasContent: string;
+        try {
+            canvasContent = await this.app.vault.read(this.selectedCanvas);
+
+            // Check if the canvas content is empty or too short to be valid JSON
+            if (!canvasContent || canvasContent.trim().length < 2) {
+                // Initialize with empty canvas structure
+                canvasContent = JSON.stringify({ nodes: [], edges: [] });
+
+                // Save the initialized structure to the file
+                await this.app.vault.modify(this.selectedCanvas, canvasContent);
+                console.log(
+                    "Initialized empty canvas file with basic structure",
+                );
+            }
+        } catch (error) {
+            console.error("Error reading canvas file:", error);
+            new Notice(
+                `Failed to read canvas file: ${error.message || "Unknown error"}`,
+            );
+            return;
+        }
+
+        let canvasData: CanvasData;
+
+        try {
+            canvasData = JSON.parse(canvasContent);
+
+            // Check and initialize data structure if needed
+            if (!canvasData.nodes) canvasData.nodes = [];
+            if (!canvasData.edges) canvasData.edges = [];
+        } catch (error) {
+            console.error("Error parsing canvas data:", error);
+            new Notice(
+                "Error parsing canvas file. It may not be in the expected format.",
+            );
+
+            // Try to recover by creating a new canvas structure
+            canvasData = { nodes: [], edges: [] };
+            console.log(
+                "Created new canvas data structure after parsing error",
+            );
+        }
+
+        // Determine the position for the new node
+        const newNodePosition = this.calculateNewNodePosition(canvasData.nodes);
+
+        // Create a new text node with the note link in Obsidian markdown format
+        const newNode: CanvasTextNodeData = {
+            id: this.generateNodeId(),
+            type: "text",
+            text: `[[${noteFile.path}]]`,
+            position: {
+                x: newNodePosition.x,
+                y: newNodePosition.y,
+            },
+            width: 400,
+            height: 200,
         };
 
         // Add the new node to the canvas
