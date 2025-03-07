@@ -1,4 +1,4 @@
-import { App } from 'obsidian';
+import { App } from "obsidian";
 
 export interface PluginSettings {
     defaultFormat: string; // 'plain', 'link', 'embed'
@@ -9,11 +9,11 @@ export interface PluginSettings {
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
-    defaultFormat: 'plain',
+    defaultFormat: "plain",
     rememberLastCanvas: true,
-    lastCanvasPath: '',
+    lastCanvasPath: "",
     includeTagsInSend: true,
-    includeTaskPropertiesInSend: true
+    includeTaskPropertiesInSend: true,
 };
 
-export type SendFormat = 'plain' | 'link' | 'embed';
+export type SendFormat = "plain" | "link" | "embed";

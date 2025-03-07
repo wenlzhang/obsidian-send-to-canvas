@@ -55,7 +55,7 @@ try {
         outfile: join(buildDir, 'main.js'),
         minify: prod,
         platform: 'node',
-        mainFields: ['browser', 'module', 'main'],
+        mainFields: ['browser', 'module', 'main', 'tslib'],
         write: true,
         allowOverwrite: true,
     });
