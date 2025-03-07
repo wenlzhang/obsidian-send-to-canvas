@@ -1,10 +1,19 @@
 import { App } from 'obsidian';
 
 export interface PluginSettings {
-    // Add your settings properties here
-    exampleSetting: string;
+    defaultFormat: string; // 'plain', 'link', 'embed'
+    rememberLastCanvas: boolean;
+    lastCanvasPath: string;
+    includeTagsInSend: boolean;
+    includeTaskPropertiesInSend: boolean;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
-    exampleSetting: 'default'
+    defaultFormat: 'plain',
+    rememberLastCanvas: true,
+    lastCanvasPath: '',
+    includeTagsInSend: true,
+    includeTaskPropertiesInSend: true
 };
+
+export type SendFormat = 'plain' | 'link' | 'embed';

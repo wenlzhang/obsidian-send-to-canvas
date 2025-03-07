@@ -1,7 +1,7 @@
 {
-    "name": "plugin-template",
+    "name": "send-to-canvas",
     "version": "0.0.1",
-    "description": "Plugin Template.",
+    "description": "Send notes or text blocks to a canvas file in different formats.",
     "main": "main.js",
     "scripts": {
     "dev": "node esbuild.config.mjs",

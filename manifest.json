@@ -1,6 +1,6 @@
 {
-	"id": "plugin-template",
-	"name": "Plugin Template",
+	"id": "send-to-canvas",
+	"name": "Send to Canvas",
 	"version": "0.0.1",
 	"minAppVersion": "1.0.0",
 	"author": "wenlzhang",
@@ -8,5 +8,6 @@
 	"fundingUrl": {
         "Buy Me a Coffee": "https://ko-fi.com/f84556"
     },
-	"isDesktopOnly": false
+	"isDesktopOnly": false,
+	"description": "Send notes or text blocks to a Canvas file in different formats."
 }
