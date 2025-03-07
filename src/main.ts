@@ -409,9 +409,8 @@ export default class Main extends Plugin {
         if (format === "plain") {
             newNode.text = content;
         } else if (format === "link") {
-            newNode.text = `[[${sourceFile.path}#^${blockId}|${
-                content.split("\n")[0]
-            }]]`;
+            // Use a simpler format for block links without the display text part
+            newNode.text = `[[${sourceFile.path}#^${blockId}]]`;
         } else if (format === "embed") {
             newNode.text = `![[${sourceFile.path}#^${blockId}]]`;
         }
