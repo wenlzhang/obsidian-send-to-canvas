@@ -182,25 +182,19 @@ export default class Main extends Plugin {
 
         let selection = editor.getSelection();
 
-        // If no text is selected, get the current line
+        // If no text is selected, get the current line without visually selecting it
         if (!selection || selection.trim() === "") {
             const cursor = editor.getCursor();
             const line = editor.getLine(cursor.line);
 
             if (line && line.trim() !== "") {
-                // Select the current line
+                // Use the current line but don't visually select it
                 selection = line;
-
-                // Update the editor's selection to match
-                const lineLength = line.length;
-                editor.setSelection(
-                    { line: cursor.line, ch: 0 },
-                    { line: cursor.line, ch: lineLength },
+                console.log(
+                    "Using current line for sending to canvas without changing selection",
                 );
-
-                console.log("Auto-selected current line for sending to canvas");
             } else {
-                new Notice("No text selected and current line is empty");
+                new Notice("Current line is empty");
                 return;
             }
         }
