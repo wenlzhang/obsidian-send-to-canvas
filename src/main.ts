@@ -113,17 +113,15 @@ export default class Main extends Plugin {
         this.registerEvent(
             // Use a proper type for the event handler
             this.app.workspace.on("editor-menu", (menu, editor, view) => {
-                if (editor && editor.getSelection) {
-                    const selection = editor.getSelection();
-                    if (selection) {
-                        menu.addItem((item: MenuItem) => {
-                            item.setTitle("Send to canvas")
-                                .setIcon("send-to-graph")
-                                .onClick((evt: MouseEvent | KeyboardEvent) => {
-                                    this.showSendMenu(editor, evt);
-                                });
-                        });
-                    }
+                if (editor) {
+                    // Always show the menu option - we'll handle empty selection in the handler
+                    menu.addItem((item: MenuItem) => {
+                        item.setTitle("Send to canvas")
+                            .setIcon("send-to-graph")
+                            .onClick((evt: MouseEvent | KeyboardEvent) => {
+                                this.showSendMenu(editor, evt);
+                            });
+                    });
                 }
             }),
         );
@@ -182,10 +180,29 @@ export default class Main extends Plugin {
             return;
         }
 
-        const selection = editor.getSelection();
-        if (!selection) {
-            new Notice("No text selected");
-            return;
+        let selection = editor.getSelection();
+
+        // If no text is selected, get the current line
+        if (!selection || selection.trim() === "") {
+            const cursor = editor.getCursor();
+            const line = editor.getLine(cursor.line);
+
+            if (line && line.trim() !== "") {
+                // Select the current line
+                selection = line;
+
+                // Update the editor's selection to match
+                const lineLength = line.length;
+                editor.setSelection(
+                    { line: cursor.line, ch: 0 },
+                    { line: cursor.line, ch: lineLength },
+                );
+
+                console.log("Auto-selected current line for sending to canvas");
+            } else {
+                new Notice("No text selected and current line is empty");
+                return;
+            }
         }
 
         const currentView =
@@ -241,7 +258,9 @@ export default class Main extends Plugin {
         } catch (error) {
             console.error("Error sending to canvas:", error);
             new Notice(
-                `Failed to send content to canvas: ${error.message || "Unknown error"}`,
+                `Failed to send content to canvas: ${
+                    error.message || "Unknown error"
+                }`,
             );
         }
     }
