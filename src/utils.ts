@@ -119,7 +119,7 @@ export class BlockReferenceUtils {
      * @returns Processed content with task properties
      */
     static processTaskProperties(content: string): string {
-        // Identify task items and add properties
-        return content.replace(/- \[ \]/g, "- [ ] Task: ");
+        // Return the original content without modification
+        return content;
     }
 }
