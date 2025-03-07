@@ -57,9 +57,14 @@ interface CanvasData {
 export default class Main extends Plugin {
     settings: PluginSettings;
     selectedCanvas: TFile | null = null;
+    statusBarItem: HTMLElement;
 
     async onload() {
         await this.loadSettings();
+
+        // Add status bar item for selected canvas
+        this.statusBarItem = this.addStatusBarItem();
+        this.updateStatusBar();
 
         // Add settings tab
         this.addSettingTab(new SettingsTab(this.app, this));
@@ -154,11 +159,23 @@ export default class Main extends Plugin {
             );
             if (file instanceof TFile && file.extension === "canvas") {
                 this.selectedCanvas = file;
+                // Update the status bar with the loaded canvas
+                this.updateStatusBar();
+                // Show a subtle notification that a canvas was automatically selected
+                new Notice(`Canvas loaded: ${file.basename}`, 2000);
+            } else {
+                // If the file no longer exists, clear the saved path
+                this.settings.lastCanvasPath = "";
+                await this.saveSettings();
             }
         }
     }
 
     async saveSettings() {
+        // Ensure the lastCanvasPath is updated if a canvas is selected
+        if (this.selectedCanvas && this.settings.rememberLastCanvas) {
+            this.settings.lastCanvasPath = this.selectedCanvas.path;
+        }
         await this.saveData(this.settings);
     }
 
@@ -176,7 +193,18 @@ export default class Main extends Plugin {
                 this.selectedCanvas = file;
                 this.settings.lastCanvasPath = file.path;
                 this.saveSettings();
-                new Notice(`Selected canvas: ${file.name}`);
+
+                // Provide more context in the notification
+                const persistenceInfo = this.settings.rememberLastCanvas
+                    ? "This selection will be remembered across sessions."
+                    : "This selection will be valid until you close Obsidian.";
+
+                new Notice(
+                    `Selected canvas: ${file.basename}\n${persistenceInfo}`,
+                );
+
+                // Update the status bar
+                this.updateStatusBar();
             },
         );
         modal.open();
@@ -675,6 +703,26 @@ export default class Main extends Plugin {
         return (
             Date.now().toString() + Math.random().toString(36).substring(2, 9)
         );
+    }
+
+    updateStatusBar() {
+        if (!this.statusBarItem) return;
+
+        this.statusBarItem.empty();
+
+        if (this.selectedCanvas) {
+            this.statusBarItem.setText(
+                `Canvas: ${this.selectedCanvas.basename}`,
+            );
+        } else {
+            this.statusBarItem.setText("No Canvas Selected");
+        }
+
+        // Make the status bar item clickable to select a new canvas
+        this.statusBarItem.style.cursor = "pointer";
+        this.statusBarItem.addEventListener("click", () => {
+            this.selectCanvasFile();
+        });
     }
 }
 

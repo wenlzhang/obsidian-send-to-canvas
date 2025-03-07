@@ -16,6 +16,28 @@ export class SettingsTab extends PluginSettingTab {
 
         containerEl.createEl("h2", { text: "Send to Canvas settings" });
 
+        // Add explanation about canvas selection
+        const canvasSelectionInfo = containerEl.createDiv(
+            "canvas-selection-info",
+        );
+        canvasSelectionInfo.createEl("p", {
+            text:
+                "To select a canvas file, use the 'Select a canvas file' command from the command palette. " +
+                "The selected canvas will be shown in the status bar at the bottom of the window.",
+        });
+
+        if (this.plugin.settings.rememberLastCanvas) {
+            canvasSelectionInfo.createEl("p", {
+                text: "Your selected canvas will be remembered between Obsidian sessions.",
+            });
+        } else {
+            canvasSelectionInfo.createEl("p", {
+                text: "Your selected canvas will only be valid for the current Obsidian session.",
+            });
+        }
+
+        containerEl.createEl("h3", { text: "General settings" });
+
         new Setting(containerEl)
             .setName("Default send format")
             .setDesc("Choose the default format when sending content to canvas")

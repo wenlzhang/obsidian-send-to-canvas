@@ -1,0 +1,36 @@
+.canvas-info {
+    padding: 10px 0;
+    margin-bottom: 10px;
+}
+
+.canvas-name {
+    font-weight: 600;
+    margin-left: 5px;
+}
+
+.no-canvas {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.canvas-selection-info {
+    background-color: var(--background-secondary);
+    border-radius: 5px;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+}
+
+.canvas-selection-info p {
+    margin: 8px 0;
+}
+
+/* Style for the status bar item */
+.status-bar-item:has-text("Canvas:") {
+    color: var(--text-accent);
+    font-weight: 500;
+}
+
+.status-bar-item:has-text("No Canvas Selected") {
+    color: var(--text-muted);
+    font-style: italic;
+}
