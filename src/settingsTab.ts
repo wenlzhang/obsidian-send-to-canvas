@@ -95,65 +95,66 @@ export class SettingsTab extends PluginSettingTab {
             });
         };
 
-        // Create preset buttons
-        createPresetButton("5s", 5000);
-        createPresetButton("10s", 10000);
-        createPresetButton("30s", 30000);
-        createPresetButton("1m", 60000);
-        createPresetButton("2m", 120000);
-        createPresetButton("5m", 300000);
-        createPresetButton("10m", 600000);
+        // Create preset buttons for seconds and minutes
+        createPresetButton("5s", 5);
+        createPresetButton("10s", 10);
+        createPresetButton("30s", 30);
+        createPresetButton("1m", 60);
+        createPresetButton("2m", 120);
+        createPresetButton("5m", 300);
+        createPresetButton("10m", 600);
 
-        new Setting(containerEl)
+        // Create a setting with a slider and display of the current value
+        const delaySlider = new Setting(containerEl)
             .setName("Startup load delay")
             .setDesc(
                 "Adjust how long the plugin waits before trying to find canvas files after Obsidian starts.",
             )
-            .addSlider((slider) =>
+            .addSlider((slider) => {
                 slider
-                    .setLimits(1000, 600000, 1000)
+                    .setLimits(1, 600, 1) // 1 second to 10 minutes
                     .setValue(this.plugin.settings.startupLoadDelay)
                     .setDynamicTooltip()
                     .onChange(async (value) => {
                         this.plugin.settings.startupLoadDelay = value;
                         await this.plugin.saveSettings();
-                    }),
-            )
+
+                        // Update the name to show the current value
+                        updateSliderName(value);
+                    });
+                return slider;
+            })
             .addExtraButton((button) =>
                 button
                     .setIcon("reset")
-                    .setTooltip("Reset to default (5000ms)")
+                    .setTooltip("Reset to default (5 seconds)")
                     .onClick(async () => {
-                        this.plugin.settings.startupLoadDelay = 5000;
+                        this.plugin.settings.startupLoadDelay = 5;
                         await this.plugin.saveSettings();
                         this.display(); // Refresh the display
                     }),
-            )
-            .addText((text) => {
-                // Update the text field with the current value in a readable format
-                const updateDisplayValue = (value: number) => {
-                    if (value < 60000) {
-                        // Less than a minute, show in seconds
-                        text.setValue(`${(value / 1000).toFixed(1)} seconds`);
-                    } else {
-                        // More than a minute, show in minutes and seconds
-                        const minutes = Math.floor(value / 60000);
-                        const seconds = ((value % 60000) / 1000).toFixed(0);
-                        text.setValue(`${minutes} min ${seconds} sec`);
-                    }
-                };
+            );
 
-                // Set initial value
-                updateDisplayValue(this.plugin.settings.startupLoadDelay);
+        // Function to update the slider name with the current value
+        const updateSliderName = (value: number) => {
+            let displayValue: string;
+            if (value < 60) {
+                // Less than a minute, show in seconds
+                displayValue = `${value} seconds`;
+            } else {
+                // More than a minute, show in minutes and seconds
+                const minutes = Math.floor(value / 60);
+                const seconds = value % 60;
+                if (seconds === 0) {
+                    displayValue = `${minutes} minute${minutes > 1 ? "s" : ""}`;
+                } else {
+                    displayValue = `${minutes} minute${minutes > 1 ? "s" : ""} ${seconds} second${seconds > 1 ? "s" : ""}`;
+                }
+            }
+            delaySlider.setName(`Startup load delay (${displayValue})`);
+        };
 
-                // Update when slider changes
-                slider.onChange((value) => {
-                    updateDisplayValue(value);
-                });
-
-                // Make the text field smaller and read-only
-                text.inputEl.style.width = "100px";
-                text.setDisabled(true);
-            });
+        // Initialize the slider name
+        updateSliderName(this.plugin.settings.startupLoadDelay);
     }
 }

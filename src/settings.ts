@@ -6,7 +6,7 @@ export interface PluginSettings {
     lastCanvasPath: string;
     includeTagsInSend: boolean;
     includeTaskPropertiesInSend: boolean;
-    startupLoadDelay: number; // Delay in milliseconds before loading canvas files on startup
+    startupLoadDelay: number; // Delay in seconds before loading canvas files on startup
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -15,7 +15,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
     lastCanvasPath: "",
     includeTagsInSend: true,
     includeTaskPropertiesInSend: true,
-    startupLoadDelay: 5000, // Default to 5 seconds
+    startupLoadDelay: 5, // Default to 5 seconds
 };
 
 export type SendFormat = "plain" | "link" | "embed";
