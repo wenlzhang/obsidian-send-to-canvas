@@ -64,7 +64,27 @@ export default class Main extends Plugin {
 
         // Add status bar item for selected canvas
         this.statusBarItem = this.addStatusBarItem();
-        this.updateStatusBar();
+
+        // Wait for Obsidian to fully load all files before trying to find the canvas file
+        // Use a timeout to ensure all files are loaded
+        console.log("Setting up delayed canvas file loading");
+        setTimeout(() => {
+            console.log("Now loading canvas files after delay");
+            this.loadCanvasFile();
+            this.updateStatusBar();
+
+            // Check if we have canvas files in the vault
+            const canvasFiles = this.getCanvasFiles();
+            if (canvasFiles.length === 0) {
+                console.log(
+                    "No canvas files found in vault during startup. This might indicate an issue with file detection.",
+                );
+            } else {
+                console.log(
+                    `Found ${canvasFiles.length} canvas files during startup.`,
+                );
+            }
+        }, 5000); // 5 second delay to ensure files are loaded
 
         // Add settings tab
         this.addSettingTab(new SettingsTab(this.app, this));
@@ -77,6 +97,15 @@ export default class Main extends Plugin {
                 this.selectCanvasFile();
             },
         });
+
+        // Debug command - only visible in developer mode
+        if (process.env.NODE_ENV !== "production") {
+            this.addCommand({
+                id: "debug-canvas-finding",
+                name: "Debug: Test canvas file finding",
+                callback: () => this.debugCanvasFinding(),
+            });
+        }
 
         // Add command to send selection to canvas as plain text
         this.addCommand({
@@ -154,36 +183,69 @@ export default class Main extends Plugin {
         );
 
         console.log(
-            "Settings loaded, lastCanvasPath:",
-            this.settings.lastCanvasPath,
+            "Settings loaded from data.json:",
+            JSON.stringify(this.settings),
         );
+        console.log("Last canvas path:", this.settings.lastCanvasPath);
 
+        // Don't try to load the canvas file here - we'll do it after the workspace is ready
+    }
+
+    async loadCanvasFile() {
         // If there's a saved path, try to load it (regardless of rememberLastCanvas setting)
-        // This ensures we don't lose the selection when toggling the setting
-        if (this.settings.lastCanvasPath) {
-            const file = this.app.vault.getAbstractFileByPath(
+        if (
+            this.settings.lastCanvasPath &&
+            this.settings.lastCanvasPath.length > 0
+        ) {
+            console.log(
+                "Attempting to load canvas file from path or name:",
                 this.settings.lastCanvasPath,
             );
 
-            if (file instanceof TFile && file.extension === "canvas") {
-                console.log("Found saved canvas file:", file.path);
-                this.selectedCanvas = file;
+            try {
+                // Try to find the canvas file
+                const file = this.findCanvasFile(this.settings.lastCanvasPath);
 
-                // Only show notification and update UI if rememberLastCanvas is enabled
-                if (this.settings.rememberLastCanvas) {
-                    // Update the status bar with the loaded canvas
-                    setTimeout(() => {
-                        this.updateStatusBar();
-                        // Show a subtle notification that a canvas was automatically selected
-                        new Notice(`Canvas loaded: ${file.basename}`, 2000);
-                    }, 500);
+                if (file) {
+                    console.log("Successfully loaded canvas file:", file.path);
+                    this.selectedCanvas = file;
+
+                    // Update the path to ensure it's the full path
+                    if (this.settings.lastCanvasPath !== file.path) {
+                        console.log(
+                            "Updating saved path from",
+                            this.settings.lastCanvasPath,
+                            "to",
+                            file.path,
+                        );
+                        this.settings.lastCanvasPath = file.path;
+                        await this.saveSettings();
+                    }
+
+                    // Only show notification and update UI if rememberLastCanvas is enabled
+                    if (this.settings.rememberLastCanvas) {
+                        // Update the status bar with the loaded canvas
+                        setTimeout(() => {
+                            this.updateStatusBar();
+                            // Show a subtle notification that a canvas was automatically selected
+                            new Notice(`Canvas loaded: ${file.basename}`, 2000);
+                        }, 500);
+                    }
+                } else {
+                    console.log(
+                        "No canvas file found with path or name:",
+                        this.settings.lastCanvasPath,
+                    );
+                    // If the file no longer exists, clear the saved path
+                    this.settings.lastCanvasPath = "";
+                    await this.saveSettings();
                 }
-            } else {
-                console.log("Saved canvas file not found or invalid");
-                // If the file no longer exists, clear the saved path
-                this.settings.lastCanvasPath = "";
-                await this.saveSettings();
+            } catch (error) {
+                console.error("Error loading canvas file:", error);
+                // Don't clear the path here, as it might be a temporary error
             }
+        } else {
+            console.log("No saved canvas path found in settings");
         }
     }
 
@@ -191,6 +253,7 @@ export default class Main extends Plugin {
         try {
             // Always save the current canvas path if one is selected
             if (this.selectedCanvas) {
+                // Ensure we're saving the full path
                 this.settings.lastCanvasPath = this.selectedCanvas.path;
                 console.log(
                     "Saving canvas path to settings:",
@@ -223,8 +286,10 @@ export default class Main extends Plugin {
             async (file: TFile) => {
                 this.selectedCanvas = file;
 
-                // Save the selected canvas path to settings
+                // Save the selected canvas path to settings - ensure it's the full path
                 this.settings.lastCanvasPath = file.path;
+                console.log("Selected canvas file with full path:", file.path);
+
                 await this.saveSettings();
 
                 // Provide more context in the notification
@@ -433,9 +498,165 @@ export default class Main extends Plugin {
     }
 
     getCanvasFiles(): TFile[] {
-        return this.app.vault
-            .getFiles()
-            .filter((file) => file.extension === "canvas");
+        const files = this.app.vault.getFiles();
+
+        // Try the standard way first - files with .canvas extension
+        let canvasFiles = files.filter((file) => file.extension === "canvas");
+        console.log(
+            "Found canvas files (by extension):",
+            canvasFiles.length,
+            "files",
+        );
+
+        // If no canvas files were found, try alternative detection methods
+        if (canvasFiles.length === 0) {
+            // Log all file extensions for debugging
+            const allExtensions = new Set(files.map((f) => f.extension));
+            console.log(
+                "All file extensions in vault:",
+                Array.from(allExtensions),
+            );
+            console.log("Total files in vault:", files.length);
+
+            // Try alternative detection methods:
+            // 1. Check for files with "canvas" in the name
+            const nameBasedCanvasFiles = files.filter((f) =>
+                f.name.toLowerCase().includes("canvas"),
+            );
+
+            if (nameBasedCanvasFiles.length > 0) {
+                console.log(
+                    "Found potential canvas files by name:",
+                    nameBasedCanvasFiles.map((f) => f.path),
+                );
+                canvasFiles = nameBasedCanvasFiles;
+            }
+
+            // 2. Check if there's a special canvas folder
+            const canvasFolders = this.app.vault
+                .getAllLoadedFiles()
+                .filter(
+                    (f) =>
+                        f.name.toLowerCase().includes("canvas") &&
+                        !(f instanceof TFile),
+                );
+
+            if (canvasFolders.length > 0) {
+                console.log(
+                    "Found potential canvas folders:",
+                    canvasFolders.map((f) => f.path),
+                );
+
+                // Look for files in these folders
+                const filesInCanvasFolders = files.filter((f) =>
+                    canvasFolders.some((folder) =>
+                        f.path.startsWith(folder.path + "/"),
+                    ),
+                );
+
+                if (filesInCanvasFolders.length > 0) {
+                    console.log(
+                        "Found files in canvas folders:",
+                        filesInCanvasFolders.map((f) => f.path),
+                    );
+                    // Add these to our canvas files if we haven't found any yet
+                    if (canvasFiles.length === 0) {
+                        canvasFiles = filesInCanvasFolders;
+                    }
+                }
+            }
+
+            // 3. Check for any JSON files that might be canvas files
+            const jsonFiles = files.filter((f) => f.extension === "json");
+            if (jsonFiles.length > 0 && canvasFiles.length === 0) {
+                console.log(
+                    "Found JSON files that might be canvas files:",
+                    jsonFiles.map((f) => f.path),
+                );
+                // We don't automatically use these, but log them for debugging
+            }
+        }
+
+        return canvasFiles;
+    }
+
+    // Helper method to find a canvas file by name or path
+    findCanvasFile(nameOrPath: string): TFile | null {
+        // Log all canvas files in the vault for debugging
+        const allCanvasFiles = this.getCanvasFiles();
+        console.log(
+            "All canvas files in vault:",
+            allCanvasFiles.map((f) => f.path),
+        );
+
+        // First try to get by exact path
+        const fileByPath = this.app.vault.getAbstractFileByPath(nameOrPath);
+        if (fileByPath instanceof TFile && fileByPath.extension === "canvas") {
+            console.log("Found canvas file by exact path:", fileByPath.path);
+            return fileByPath;
+        }
+
+        // If that fails, try to find by name
+        const fileName = nameOrPath.split("/").pop() || nameOrPath;
+        console.log("Trying to find canvas by name:", fileName);
+
+        // Try exact name match
+        let matchingFile = allCanvasFiles.find((f) => f.name === fileName);
+
+        if (matchingFile) {
+            console.log(
+                "Found canvas file by exact name match:",
+                matchingFile.path,
+            );
+            return matchingFile;
+        }
+
+        // Try case-insensitive name match
+        matchingFile = allCanvasFiles.find(
+            (f) => f.name.toLowerCase() === fileName.toLowerCase(),
+        );
+
+        if (matchingFile) {
+            console.log(
+                "Found canvas file by case-insensitive name match:",
+                matchingFile.path,
+            );
+            return matchingFile;
+        }
+
+        // Try basename match (without extension)
+        const baseNameWithoutExt = fileName.replace(/\.canvas$/, "");
+        matchingFile = allCanvasFiles.find(
+            (f) =>
+                f.basename === baseNameWithoutExt ||
+                f.basename.toLowerCase() === baseNameWithoutExt.toLowerCase(),
+        );
+
+        if (matchingFile) {
+            console.log(
+                "Found canvas file by basename match:",
+                matchingFile.path,
+            );
+            return matchingFile;
+        }
+
+        // Try partial name match as last resort
+        matchingFile = allCanvasFiles.find(
+            (f) =>
+                f.name.includes(baseNameWithoutExt) ||
+                f.name.toLowerCase().includes(baseNameWithoutExt.toLowerCase()),
+        );
+
+        if (matchingFile) {
+            console.log(
+                "Found canvas file by partial name match:",
+                matchingFile.path,
+            );
+            return matchingFile;
+        }
+
+        console.log("No canvas file found with name:", fileName);
+        return null;
     }
 
     async createBlockReference(
@@ -772,6 +993,32 @@ export default class Main extends Plugin {
         this.statusBarItem.addEventListener("click", () => {
             this.selectCanvasFile();
         });
+    }
+
+    // Debug method to test canvas file finding
+    debugCanvasFinding() {
+        // Log all canvas files in the vault
+        const allCanvasFiles = this.getCanvasFiles();
+        console.log("=== DEBUG: Canvas File Finding ===");
+        console.log(
+            "All canvas files in vault:",
+            allCanvasFiles.map((f) => f.path),
+        );
+
+        // If we have a saved path, try to find it
+        if (this.settings.lastCanvasPath) {
+            console.log(
+                "Testing finding with saved path:",
+                this.settings.lastCanvasPath,
+            );
+            const found = this.findCanvasFile(this.settings.lastCanvasPath);
+            console.log("Result:", found ? found.path : "Not found");
+        }
+
+        // Show a notice with the number of canvas files
+        new Notice(
+            `Found ${allCanvasFiles.length} canvas files in vault. Check console for details.`,
+        );
     }
 }
 
