@@ -56,14 +56,22 @@ export class SettingsTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName("Remember last canvas")
             .setDesc(
-                "Automatically select the last used canvas file in subsequent operations",
+                "Remember the last selected canvas file between Obsidian sessions",
             )
             .addToggle((toggle) =>
                 toggle
                     .setValue(this.plugin.settings.rememberLastCanvas)
                     .onChange(async (value) => {
                         this.plugin.settings.rememberLastCanvas = value;
+
+                        // If turned off, we don't clear the path anymore
+                        // This allows the selection to persist in data.json
+                        // even if it's not automatically loaded on startup
+
                         await this.plugin.saveSettings();
+
+                        // Update the explanation text based on the new setting
+                        this.display();
                     }),
             );
 

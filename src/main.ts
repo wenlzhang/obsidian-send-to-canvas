@@ -146,24 +146,40 @@ export default class Main extends Plugin {
     }
 
     async loadSettings() {
+        // Load settings from data.json
         this.settings = Object.assign(
             {},
             DEFAULT_SETTINGS,
             await this.loadData(),
         );
 
-        // If remember last canvas is enabled and there's a saved path, try to load it
-        if (this.settings.rememberLastCanvas && this.settings.lastCanvasPath) {
+        console.log(
+            "Settings loaded, lastCanvasPath:",
+            this.settings.lastCanvasPath,
+        );
+
+        // If there's a saved path, try to load it (regardless of rememberLastCanvas setting)
+        // This ensures we don't lose the selection when toggling the setting
+        if (this.settings.lastCanvasPath) {
             const file = this.app.vault.getAbstractFileByPath(
                 this.settings.lastCanvasPath,
             );
+
             if (file instanceof TFile && file.extension === "canvas") {
+                console.log("Found saved canvas file:", file.path);
                 this.selectedCanvas = file;
-                // Update the status bar with the loaded canvas
-                this.updateStatusBar();
-                // Show a subtle notification that a canvas was automatically selected
-                new Notice(`Canvas loaded: ${file.basename}`, 2000);
+
+                // Only show notification and update UI if rememberLastCanvas is enabled
+                if (this.settings.rememberLastCanvas) {
+                    // Update the status bar with the loaded canvas
+                    setTimeout(() => {
+                        this.updateStatusBar();
+                        // Show a subtle notification that a canvas was automatically selected
+                        new Notice(`Canvas loaded: ${file.basename}`, 2000);
+                    }, 500);
+                }
             } else {
+                console.log("Saved canvas file not found or invalid");
                 // If the file no longer exists, clear the saved path
                 this.settings.lastCanvasPath = "";
                 await this.saveSettings();
@@ -172,11 +188,26 @@ export default class Main extends Plugin {
     }
 
     async saveSettings() {
-        // Ensure the lastCanvasPath is updated if a canvas is selected
-        if (this.selectedCanvas && this.settings.rememberLastCanvas) {
-            this.settings.lastCanvasPath = this.selectedCanvas.path;
+        try {
+            // Always save the current canvas path if one is selected
+            if (this.selectedCanvas) {
+                this.settings.lastCanvasPath = this.selectedCanvas.path;
+                console.log(
+                    "Saving canvas path to settings:",
+                    this.settings.lastCanvasPath,
+                );
+            }
+
+            // Save settings to data.json
+            await this.saveData(this.settings);
+            console.log(
+                "Settings saved to data.json:",
+                JSON.stringify(this.settings),
+            );
+        } catch (error) {
+            console.error("Error saving settings:", error);
+            new Notice("Error saving settings. Please try again.");
         }
-        await this.saveData(this.settings);
     }
 
     selectCanvasFile() {
@@ -189,10 +220,12 @@ export default class Main extends Plugin {
         const modal = new CanvasFileSuggestModal(
             this.app,
             canvasFiles,
-            (file: TFile) => {
+            async (file: TFile) => {
                 this.selectedCanvas = file;
+
+                // Save the selected canvas path to settings
                 this.settings.lastCanvasPath = file.path;
-                this.saveSettings();
+                await this.saveSettings();
 
                 // Provide more context in the notification
                 const persistenceInfo = this.settings.rememberLastCanvas
@@ -205,6 +238,9 @@ export default class Main extends Plugin {
 
                 // Update the status bar
                 this.updateStatusBar();
+
+                // Log for debugging
+                console.log(`Canvas selected and saved: ${file.path}`);
             },
         );
         modal.open();
@@ -714,12 +750,25 @@ export default class Main extends Plugin {
             this.statusBarItem.setText(
                 `Canvas: ${this.selectedCanvas.basename}`,
             );
+            this.statusBarItem.addClass("has-canvas-selected");
+            this.statusBarItem.removeClass("no-canvas-selected");
         } else {
             this.statusBarItem.setText("No Canvas Selected");
+            this.statusBarItem.addClass("no-canvas-selected");
+            this.statusBarItem.removeClass("has-canvas-selected");
         }
 
         // Make the status bar item clickable to select a new canvas
         this.statusBarItem.style.cursor = "pointer";
+
+        // Remove any existing event listeners to prevent duplicates
+        const newItem = this.statusBarItem.cloneNode(true);
+        this.statusBarItem.parentNode?.replaceChild(
+            newItem,
+            this.statusBarItem,
+        );
+        this.statusBarItem = newItem as HTMLElement;
+
         this.statusBarItem.addEventListener("click", () => {
             this.selectCanvasFile();
         });

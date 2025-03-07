@@ -25,12 +25,12 @@
 }
 
 /* Style for the status bar item */
-.status-bar-item:has-text("Canvas:") {
+.status-bar-item.has-canvas-selected {
     color: var(--text-accent);
     font-weight: 500;
 }
 
-.status-bar-item:has-text("No Canvas Selected") {
+.status-bar-item.no-canvas-selected {
     color: var(--text-muted);
     font-style: italic;
 }
