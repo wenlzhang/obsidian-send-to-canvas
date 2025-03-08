@@ -373,53 +373,64 @@ export default class Main extends Plugin {
                     const existingIdMatch =
                         selectedText.match(/\^([a-zA-Z0-9-]+)$/);
 
+                    // Check if the custom text is already appended to avoid duplicating it
+                    const customTextAlreadyAppended = selectedText.includes(
+                        this.settings.openTaskAppendText,
+                    );
+
                     if (existingIdMatch) {
-                        // If there's already a block ID, insert the custom text before it
-                        const blockIdPart = existingIdMatch[0];
-                        const textWithoutBlockId = selectedText
-                            .substring(
-                                0,
-                                selectedText.length - blockIdPart.length,
-                            )
-                            .trimEnd();
+                        // If there's already a block ID, insert the custom text before it (if not already present)
+                        if (!customTextAlreadyAppended) {
+                            const blockIdPart = existingIdMatch[0];
+                            const textWithoutBlockId = selectedText
+                                .substring(
+                                    0,
+                                    selectedText.length - blockIdPart.length,
+                                )
+                                .trimEnd();
 
-                        // Update the text in the editor
-                        const updatedText =
-                            textWithoutBlockId +
-                            " " +
-                            this.settings.openTaskAppendText +
-                            " " +
-                            blockIdPart;
+                            // Update the text in the editor
+                            const updatedText =
+                                textWithoutBlockId +
+                                " " +
+                                this.settings.openTaskAppendText +
+                                " " +
+                                blockIdPart;
 
-                        // Find the position of the selected text in the editor
-                        const fileContent =
-                            await this.app.vault.read(currentFile);
-                        const position = BlockReferenceUtils.findTextPosition(
-                            fileContent,
-                            selectedText,
-                        );
+                            // Find the position of the selected text in the editor
+                            const fileContent =
+                                await this.app.vault.read(currentFile);
+                            const position =
+                                BlockReferenceUtils.findTextPosition(
+                                    fileContent,
+                                    selectedText,
+                                );
 
-                        if (position) {
-                            // Update the file with the modified text
-                            const lines = fileContent.split("\n");
-                            lines[position.line] = updatedText;
-                            await this.app.vault.modify(
-                                currentFile,
-                                lines.join("\n"),
-                            );
+                            if (position) {
+                                // Update the file with the modified text
+                                const lines = fileContent.split("\n");
+                                lines[position.line] = updatedText;
+                                await this.app.vault.modify(
+                                    currentFile,
+                                    lines.join("\n"),
+                                );
 
-                            // Extract the block ID from the match
-                            blockId = existingIdMatch[1];
-
-                            // Update the selected text for the canvas
-                            selectedText = updatedText;
+                                // Update the selected text for the canvas
+                                selectedText = updatedText;
+                            }
                         }
+
+                        // Extract the block ID from the match
+                        blockId = existingIdMatch[1];
                     } else {
-                        // No existing block ID, append the custom text and then add a block ID
-                        selectedText =
-                            selectedText.trimEnd() +
-                            " " +
-                            this.settings.openTaskAppendText;
+                        // No existing block ID
+                        if (!customTextAlreadyAppended) {
+                            // Append the custom text only if it's not already there
+                            selectedText =
+                                selectedText.trimEnd() +
+                                " " +
+                                this.settings.openTaskAppendText;
+                        }
 
                         // Add a block ID to the current selection
                         blockId = await this.addBlockIdToSelection(
