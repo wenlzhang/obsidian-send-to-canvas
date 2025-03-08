@@ -364,7 +364,7 @@ export default class Main extends Plugin {
 
         // Check if the content is a task and append custom text if enabled
         // Only modify the original text for link and embed formats
-        let contentToSend = selectedText;
+        const contentToSend = selectedText;
         const isOpenTask = selectedText.trim().startsWith("- [ ]");
 
         // Generate a block ID for link and embed formats
@@ -817,7 +817,7 @@ export default class Main extends Plugin {
         format: SendFormat,
         content: string,
         sourceFile: TFile,
-        blockId: string = "",
+        blockId = "",
     ): Promise<void> {
         if (!this.selectedCanvas) {
             new Notice("No canvas selected");
