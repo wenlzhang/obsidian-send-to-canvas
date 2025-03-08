@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.1.3] - 2025-03-08
+
+### Changes
+
+- Reduce demo gif size
+- Add gif demo
+- Fix open task sending
+- Update README.md
+
 ## [0.1.2] - 2025-03-08
 
 ### Changes
