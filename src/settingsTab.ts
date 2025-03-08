@@ -14,7 +14,6 @@ export class SettingsTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-
         // Canvas selection section
         new Setting(containerEl).setName("Canvas selection").setHeading();
 
@@ -199,12 +198,61 @@ export class SettingsTab extends PluginSettingTab {
                 "on Saturday, March 8th (with day name)",
             );
         }
+        
+        // Open task customization section
+        new Setting(containerEl)
+            .setName("Open task customization")
+            .setHeading();
+
+        new Setting(containerEl)
+            .setName("Append text to open tasks")
+            .setDesc(
+                "Add custom text to open tasks (lines starting with '- [ ]') before creating block IDs",
+            )
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(this.plugin.settings.appendTextToOpenTasks)
+                    .onChange(async (value) => {
+                        this.plugin.settings.appendTextToOpenTasks = value;
+                        await this.plugin.saveSettings();
+                    }),
+            );
+
+        new Setting(containerEl)
+            .setName("Text to append")
+            .setDesc("Custom text to append to open tasks before the block ID")
+            .addText((text) =>
+                text
+                    .setValue(this.plugin.settings.openTaskAppendText)
+                    .onChange(async (value) => {
+                        this.plugin.settings.openTaskAppendText = value;
+                        await this.plugin.saveSettings();
+                    }),
+            );
+
+        // Add examples of task customization
+        const taskExamplesDiv = containerEl.createDiv({
+            cls: "setting-item-description timestamp-format-examples",
+        });
+        taskExamplesDiv.createSpan({
+            text: "Example:",
+        });
+        taskExamplesDiv.createEl("br");
+        taskExamplesDiv.createSpan({
+            text: "Original: - [ ] Task description",
+        });
+        taskExamplesDiv.createEl("br");
+        taskExamplesDiv.createSpan({
+            text: "Modified: - [ ] Task description [l:: #DVTLCanvas ]",
+        });
 
         // Node size settings section
         new Setting(containerEl).setName("Canvas node sizes").setHeading();
 
         // Link and block link node size settings
-        new Setting(containerEl).setName("Link nodes (note links and block links)").setHeading();
+        new Setting(containerEl)
+            .setName("Link nodes (note links and block links)")
+            .setHeading();
 
         new Setting(containerEl)
             .setName("Link node width")
@@ -237,7 +285,9 @@ export class SettingsTab extends PluginSettingTab {
             );
 
         // Content node size settings (block embeds and plain text)
-        new Setting(containerEl).setName("Content nodes (block embeds and plain text)").setHeading();
+        new Setting(containerEl)
+            .setName("Content nodes (block embeds and plain text)")
+            .setHeading();
 
         new Setting(containerEl)
             .setName("Content node width")
@@ -270,7 +320,9 @@ export class SettingsTab extends PluginSettingTab {
             );
 
         // File node size settings (note content)
-        new Setting(containerEl).setName("File nodes (note content)").setHeading();
+        new Setting(containerEl)
+            .setName("File nodes (note content)")
+            .setHeading();
 
         new Setting(containerEl)
             .setName("File node width")
@@ -301,7 +353,7 @@ export class SettingsTab extends PluginSettingTab {
                         }
                     }),
             );
-        
+
         // Add a heading for the startup delay section
         new Setting(containerEl).setName("Canvas file loading").setHeading();
 

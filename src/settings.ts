@@ -10,6 +10,10 @@ export interface SendToCanvasSettings {
     appendTimestampToLinks: boolean; // Whether to append a timestamp after links and embeds
     appendTimestampFormat: string; // MomentJS format for the timestamp to append
 
+    // Task customization
+    appendTextToOpenTasks: boolean;
+    openTaskAppendText: string;
+
     // Node size settings
     linkNodeWidth: number;
     linkNodeHeight: number;
@@ -28,6 +32,10 @@ export const DEFAULT_SETTINGS: SendToCanvasSettings = {
     blockIdDateFormat: "YYYY-MM-DDTHH-mm-ss",
     appendTimestampToLinks: false,
     appendTimestampFormat: "[📝 ]YYYY-MM-DDTHH:mm",
+
+    // Default task customization
+    appendTextToOpenTasks: false,
+    openTaskAppendText: "[l:: #Canvas ]",
 
     // Default node sizes
     linkNodeWidth: 400,

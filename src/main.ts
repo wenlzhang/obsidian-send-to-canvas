@@ -322,25 +322,7 @@ export default class Main extends Plugin {
             return;
         }
 
-        let selection = editor.getSelection();
-
-        // If no text is selected, get the current line without visually selecting it
-        if (!selection || selection.trim() === "") {
-            const cursor = editor.getCursor();
-            const line = editor.getLine(cursor.line);
-
-            if (line && line.trim() !== "") {
-                // Use the current line but don't visually select it
-                selection = line;
-                console.log(
-                    "Using current line for sending to canvas without changing selection",
-                );
-            } else {
-                new Notice("Current line is empty");
-                return;
-            }
-        }
-
+        // Get the current file
         const currentView =
             this.app.workspace.getActiveViewOfType(MarkdownView);
         if (!currentView) {
@@ -354,27 +336,56 @@ export default class Main extends Plugin {
             return;
         }
 
-        const currentContent = selection;
-        let contentToSend = currentContent;
+        // Get the selection
+        let selectedText = editor.getSelection();
+
+        // If no text is selected, use the current line without visually selecting it
+        if (!selectedText || selectedText.trim() === "") {
+            const cursor = editor.getCursor();
+            const line = editor.getLine(cursor.line);
+
+            if (line && line.trim() !== "") {
+                // Use the current line but don't visually select it
+                selectedText = line;
+                console.log(
+                    "Using current line for sending to canvas without changing selection",
+                );
+            } else {
+                new Notice("Current line is empty");
+                return;
+            }
+        }
+
+        // Check if the content is a task and append custom text if enabled
+        let contentToSend = selectedText;
+        const isOpenTask = selectedText.trim().startsWith("- [ ]");
+
+        if (isOpenTask && this.settings.appendTextToOpenTasks) {
+            // Append the custom text to the task before creating the block ID
+            contentToSend =
+                selectedText.trimEnd() + " " + this.settings.openTaskAppendText;
+        }
 
         try {
-            // Create block reference for link and embed formats
+            // Generate a block ID for link and embed formats
             let blockId = "";
             if (format === "link" || format === "embed") {
-                blockId = await this.createBlockReference(
+                // Add a block ID to the current selection
+                blockId = await this.addBlockIdToSelection(
+                    editor,
                     currentFile,
-                    currentContent,
-                    this.settings,
+                    contentToSend,
                 );
             }
 
             // Add the content to the canvas
             await this.addToCanvas(format, contentToSend, currentFile, blockId);
-            new Notice(`Content sent to canvas: ${this.selectedCanvas.name}`);
+
+            new Notice(`Selection sent to canvas: ${this.selectedCanvas.name}`);
         } catch (error) {
-            console.error("Error sending to canvas:", error);
+            console.error("Error sending selection to canvas:", error);
             new Notice(
-                `Failed to send content to canvas: ${
+                `Failed to send selection to canvas: ${
                     error.message || "Unknown error"
                 }`,
             );
@@ -643,17 +654,56 @@ export default class Main extends Plugin {
         return null;
     }
 
-    async createBlockReference(
+    /**
+     * Adds a block ID to the selected text in the editor
+     * @param editor The editor instance
+     * @param file The current file
+     * @param content The content to add a block ID to
+     * @returns The generated block ID
+     */
+    async addBlockIdToSelection(
+        editor: Editor,
         file: TFile,
-        selectedText: string,
-        settings: SendToCanvasSettings,
+        content: string,
     ): Promise<string> {
-        return BlockReferenceUtils.createBlockReference(
-            this.app.vault,
-            file,
-            selectedText,
-            settings,
-        );
+        try {
+            // Read the file content
+            const fileContent = await this.app.vault.read(file);
+
+            // Find the position of the content in the file
+            const position = BlockReferenceUtils.findTextPosition(
+                fileContent,
+                content,
+            );
+            if (!position) {
+                console.error("Could not find content in file");
+                return "";
+            }
+
+            // Check if the line already has a block ID
+            const lines = fileContent.split("\n");
+            const line = lines[position.line];
+
+            // If the line already has a block ID, return it
+            const existingIdMatch = line.match(/\^([a-zA-Z0-9-]+)$/);
+            if (existingIdMatch) {
+                return existingIdMatch[1];
+            }
+
+            // Generate a new block ID
+            const blockId = BlockReferenceUtils.generateBlockId(this.settings);
+
+            // Add the block ID to the line
+            lines[position.line] = line + ` ^${blockId}`;
+
+            // Update the file
+            await this.app.vault.modify(file, lines.join("\n"));
+
+            return blockId;
+        } catch (error) {
+            console.error("Error adding block ID to selection:", error);
+            return "";
+        }
     }
 
     generateBlockId(): string {
