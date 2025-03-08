@@ -135,6 +135,9 @@ export class SettingsTab extends PluginSettingTab {
         // Open task customization section
         new Setting(containerEl)
             .setName("Open task customization")
+            .setDesc(
+                "Customize how open tasks (lines starting with '- [ ]') are sent to canvas. You can append custom text like tags or metadata to tasks.",
+            )
             .setHeading();
 
         new Setting(containerEl)
@@ -170,7 +173,12 @@ export class SettingsTab extends PluginSettingTab {
         }
 
         // Node size settings section
-        new Setting(containerEl).setName("Canvas node sizes").setHeading();
+        new Setting(containerEl)
+            .setName("Canvas node sizes")
+            .setDesc(
+                "Customize the dimensions of nodes created in canvas files. Default sizes are 400×100 for links, 400×200 for content, and 400×400 for note content.",
+            )
+            .setHeading();
 
         // Link and block link node size settings
         new Setting(containerEl)
