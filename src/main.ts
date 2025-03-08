@@ -113,8 +113,8 @@ export default class Main extends Plugin {
 
         // Add command to send selection to canvas as plain text
         this.addCommand({
-            id: "send-selection-to-canvas-as-plain-text",
-            name: "Send selection to canvas as plain text",
+            id: "send-block-text",
+            name: "Send block text",
             editorCallback: (editor: Editor) => {
                 this.sendSelectionToCanvas(editor, "plain");
             },
@@ -122,8 +122,8 @@ export default class Main extends Plugin {
 
         // Add command to send selection to canvas as block link
         this.addCommand({
-            id: "send-selection-to-canvas-as-block-link",
-            name: "Send selection to canvas as block link",
+            id: "send-block-link",
+            name: "Send block link",
             editorCallback: (editor: Editor) => {
                 this.sendSelectionToCanvas(editor, "link");
             },
@@ -131,28 +131,28 @@ export default class Main extends Plugin {
 
         // Add command to send selection to canvas as block embed
         this.addCommand({
-            id: "send-selection-to-canvas-as-block-embed",
-            name: "Send selection to canvas as block embed",
+            id: "send-block-embed",
+            name: "Send block embed",
             editorCallback: (editor: Editor) => {
                 this.sendSelectionToCanvas(editor, "embed");
             },
         });
 
-        // Add command to send the current note to canvas
+        // Add command to send note link to canvas
         this.addCommand({
-            id: "send-current-note-to-canvas",
-            name: "Send current note to canvas",
+            id: "send-note-link",
+            name: "Send note link",
             callback: () => {
-                this.sendCurrentNoteToCanvas();
+                this.sendNoteAsLinkToCanvas();
             },
         });
 
-        // Add command to send note link to canvas
+        // Add command to send the current note to canvas
         this.addCommand({
-            id: "send-note-link-to-canvas",
-            name: "Send note link to canvas",
+            id: "send-note-embed",
+            name: "Send note embed",
             callback: () => {
-                this.sendNoteAsLinkToCanvas();
+                this.sendCurrentNoteToCanvas();
             },
         });
 
