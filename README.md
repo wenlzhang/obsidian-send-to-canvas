@@ -1,67 +1,32 @@
-# Plugin Template
-
-This is a template for creating plugins for [Obsidian](https://obsidian.md), maintained by [wenlzhang](https://github.com/wenlzhang).
-
-## Getting started
-
-1. Clone this repository to your local machine
-2. Update the following files with your plugin information:
-   - `manifest.json`:
-     - `id`: Your plugin ID (in kebab-case)
-     - `name`: Your plugin name
-     - `author`: Your name
-     - `authorUrl`: Your website or GitHub profile URL
-     - `fundingUrl`: Optional funding information
-   - `package.json`:
-     - `name`: Your plugin name (should match manifest.json)
-     - `description`: Your plugin description
-     - `author`: Your name
-     - `keywords`: Relevant keywords for your plugin
-
-## Development
-
-1. Install dependencies:
-```bash
-npm install
-```
-
-2. Start development server:
-```bash
-npm run dev
-```
-
-3. Build the plugin:
-```bash
-npm run build
-```
-
-## Testing your plugin
-
-1. Create a test vault in Obsidian
-2. Create a `.obsidian/plugins` folder in your test vault
-3. Copy your plugin folder into the plugins folder
-4. Reload Obsidian to load the plugin (Ctrl/Cmd + R)
-5. Enable the plugin in Obsidian's settings
-
-## Publishing your plugin
-
-1. Update `versions.json` with your plugin's version history
-2. Test your plugin thoroughly
-3. Create a GitHub release
-4. Submit your plugin to the Obsidian Plugin Gallery
-
-## Send to Canvas
+# Send to Canvas
 
 An Obsidian plugin that allows you to send text selections, blocks, and notes to Canvas files.
 
 ## Features
 
-- Send text selections to Canvas as plain text
-- Send text selections to Canvas as block links or block embeds
-- Send entire notes to Canvas as note links or note embeds
-- Customize node sizes for different content types
-- Append timestamps to links for tracking when content was added
-- Customize open tasks when sending to Canvas
+- **Multiple content formats**:
+  - Send text as plain text
+  - Send text as block links
+  - Send text as block embeds
+  - Send entire notes as note links
+  - Send entire notes as note embeds
+- **Block ID customization**:
+  - Use date-based or random block IDs
+  - Customize block ID format using MomentJS tokens
+- **Open task customization**:
+  - Append custom text to open tasks (lines starting with "- [ ]")
+  - Preserve original task formatting
+- **Timestamp tracking**:
+  - Append timestamps to links and embeds
+  - Customize timestamp format
+- **Canvas node customization**:
+  - Set custom sizes for different node types (links, content, notes)
+  - Consistent sizing between block embeds and text content
+- **User experience**:
+  - Remember last selected canvas file
+  - Status bar indicator showing current canvas
+  - Customizable startup delay for large vaults
+- **Smart text selection**: Automatically uses the entire line when no text is selected
 
 ## Commands
 
@@ -71,7 +36,38 @@ An Obsidian plugin that allows you to send text selections, blocks, and notes to
 - **Send note link**: Send the current note to canvas as a note link
 - **Send note embed**: Send the current note to canvas as a note embed
 
+## Usage
+
+### Getting Started
+
+1. Install the plugin from the Obsidian Community Plugins browser
+2. Enable the plugin in Obsidian settings
+3. Open a canvas file that you want to send content to
+4. Use the command palette (Ctrl/Cmd+P) to select "Send to Canvas: Select Canvas File"
+5. Choose your canvas file from the dropdown
+
+### Sending Content to Canvas
+
+1. Select text in a note or place your cursor on a line (no selection needed)
+2. Open the command palette (Ctrl/Cmd+P)
+3. Choose one of the "Send to Canvas" commands:
+   - "Send block text" for plain text
+   - "Send block link" for a link to the block
+   - "Send block embed" to embed the block
+   - "Send note link" for a link to the current note
+   - "Send note embed" to embed the current note
+4. The content will be added to your selected canvas file
+
+### Keyboard Shortcuts
+
+You can set up keyboard shortcuts for any of the commands in Obsidian's Hotkeys settings.
+
 ## Settings
+
+### Canvas Selection
+
+- **Default send format**: Choose the default format (plain text, block link, or block embed) when sending content to canvas
+- **Remember last canvas**: Automatically select the last used canvas file when Obsidian restarts
 
 ### Block ID Format
 
@@ -99,9 +95,30 @@ Example:
 - Original: `- [ ] Task description`
 - Modified: `- [ ] Task description [l:: #Canvas ]`
 
-## Selection Behavior
+### Canvas Node Sizes
 
-When no text is selected and the cursor is on a line, the plugin will use the entire line as content to send to Canvas without visually selecting/highlighting the line. This allows you to quickly send content without disrupting your workflow.
+You can customize the dimensions of nodes created in canvas files:
+- **Link nodes**: For note links and block links (default: 400×100)
+- **Content nodes**: For block embeds and plain text (default: 400×200)
+- **File nodes**: For note content (default: 400×400)
+
+### Canvas File Loading
+
+The plugin needs time to find canvas files after Obsidian starts. If you have a large vault or if the plugin has trouble finding your canvas files after restart, you can increase the startup delay.
+
+## Installation
+
+1. Open Obsidian Settings
+2. Go to Community Plugins and disable Safe Mode
+3. Click Browse and search for "Send to Canvas"
+4. Install the plugin and enable it
+
+## Manual Installation
+
+1. Download the latest release from the [GitHub releases page](https://github.com/wenlzhang/obsidian-send-to-canvas/releases)
+2. Extract the files to your Obsidian plugins folder: `.obsidian/plugins/obsidian-send-to-canvas/`
+3. Reload Obsidian
+4. Enable the plugin in Obsidian settings
 
 ## Support me
 
