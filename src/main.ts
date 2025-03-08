@@ -166,7 +166,13 @@ export default class Main extends Plugin {
                         item.setTitle("Send to canvas")
                             .setIcon("send-to-graph")
                             .onClick((evt: MouseEvent | KeyboardEvent) => {
-                                this.showSendMenu(editor, evt);
+                                // Store the current mouse position when the menu item is clicked
+                                const mousePos = { x: 0, y: 0 };
+                                if (evt instanceof MouseEvent) {
+                                    mousePos.x = evt.clientX;
+                                    mousePos.y = evt.clientY;
+                                }
+                                this.showSendMenu(editor, mousePos);
                             });
                     });
                 }
@@ -527,7 +533,7 @@ export default class Main extends Plugin {
         }
     }
 
-    showSendMenu(editor: Editor, event: MouseEvent | KeyboardEvent) {
+    showSendMenu(editor: Editor, mousePos: { x: number; y: number }) {
         const menu = new Menu();
 
         // Block-related commands (for selected text)
@@ -565,37 +571,22 @@ export default class Main extends Plugin {
             });
         });
 
-        // Position the menu near the cursor or click location
-        if (event) {
-            // If it's a mouse event, show at that position
-            if ("clientX" in event && "clientY" in event) {
-                menu.showAtMouseEvent(event as MouseEvent);
-            } else {
-                // For keyboard events, use a reasonable default position
-                // Since we can't directly get cursor coordinates from the Editor API
-                const view =
-                    this.app.workspace.getActiveViewOfType(MarkdownView);
-                if (view && view.containerEl) {
-                    // Position near the editor container
-                    const rect = view.containerEl.getBoundingClientRect();
-                    menu.showAtPosition({
-                        x: rect.left + 100,
-                        y: rect.top + 100,
-                    });
-                } else {
-                    // Fallback
-                    menu.showAtPosition({ x: 100, y: 100 });
-                }
-            }
+        // Position the menu at the stored mouse position
+        if (mousePos.x !== 0 && mousePos.y !== 0) {
+            // Use the stored mouse position
+            menu.showAtPosition(mousePos);
         } else {
-            // If no event is provided, use a reasonable default position
+            // Fallback: try to position near the editor
             const view = this.app.workspace.getActiveViewOfType(MarkdownView);
             if (view && view.containerEl) {
-                // Position near the editor container
                 const rect = view.containerEl.getBoundingClientRect();
-                menu.showAtPosition({ x: rect.left + 100, y: rect.top + 100 });
+                // Position it more toward the center of the editor
+                menu.showAtPosition({
+                    x: rect.left + rect.width / 2,
+                    y: rect.top + rect.height / 3,
+                });
             } else {
-                // Fallback
+                // Last resort fallback
                 menu.showAtPosition({ x: 100, y: 100 });
             }
         }
