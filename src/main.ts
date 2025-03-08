@@ -9,6 +9,7 @@ import {
     EditorPosition,
     EditorSelection,
     FuzzySuggestModal,
+    moment,
 } from "obsidian";
 import { SettingsTab } from "./settingsTab";
 import { SendToCanvasSettings, DEFAULT_SETTINGS, SendFormat } from "./settings";
@@ -667,8 +668,11 @@ export default class Main extends Plugin {
         content: string,
         sourceFile: TFile,
         blockId: string = "",
-    ) {
-        if (!this.selectedCanvas) return;
+    ): Promise<void> {
+        if (!this.selectedCanvas) {
+            new Notice("No canvas selected");
+            return;
+        }
 
         // Read the canvas file
         let canvasContent: string;
@@ -718,8 +722,34 @@ export default class Main extends Plugin {
         // Determine the position for the new node
         const newNodePosition = this.calculateNewNodePosition(canvasData.nodes);
 
-        // Create the new node based on the format
-        let newNode: CanvasTextNodeData = {
+        // Generate the content to add based on format
+        let textContent = content;
+
+        if (format === "link" || format === "embed") {
+            // Create a link or embed with the block ID
+            let linkText = "";
+
+            if (format === "link") {
+                // Use a simpler format for block links without the display text part
+                linkText = `[[${sourceFile.basename}#^${blockId}]]`;
+            } else if (format === "embed") {
+                // Use the file basename instead of the full path
+                linkText = `![[${sourceFile.basename}#^${blockId}]]`;
+            }
+
+            textContent = linkText;
+
+            // Append timestamp if enabled
+            if (this.settings.appendTimestampToLinks) {
+                const timestamp = moment().format(
+                    this.settings.appendTimestampFormat,
+                );
+                textContent += ` ${timestamp}`;
+            }
+        }
+
+        // Create the new node
+        const newNode: CanvasTextNodeData = {
             id: this.generateNodeId(),
             type: "text",
             position: {
@@ -728,19 +758,8 @@ export default class Main extends Plugin {
             },
             width: 400,
             height: 200,
-            text: "",
+            text: textContent,
         };
-
-        if (format === "plain") {
-            newNode.text = content;
-        } else if (format === "link") {
-            // Use a simpler format for block links without the display text part
-            // Use the file basename instead of the full path
-            newNode.text = `[[${sourceFile.basename}#^${blockId}]]`;
-        } else if (format === "embed") {
-            // Use the file basename instead of the full path
-            newNode.text = `![[${sourceFile.basename}#^${blockId}]]`;
-        }
 
         // Add the new node to the canvas
         canvasData.nodes.push(newNode);
@@ -757,6 +776,44 @@ export default class Main extends Plugin {
                 `Failed to save canvas: ${error.message || "Unknown error"}`,
             );
         }
+    }
+
+    /**
+     * Calculates a position for a new node based on existing nodes
+     * @param nodes Existing nodes in the canvas
+     * @returns Position for the new node
+     */
+    calculateNewNodePosition(nodes: CanvasNodeData[]): {
+        x: number;
+        y: number;
+    } {
+        // Default position if there are no nodes
+        if (!nodes || nodes.length === 0) {
+            return { x: 0, y: 0 };
+        }
+
+        // Find the rightmost node
+        let rightmostNode = nodes[0];
+        for (const node of nodes) {
+            if (node.position.x > rightmostNode.position.x) {
+                rightmostNode = node;
+            }
+        }
+
+        // Position the new node to the right of the rightmost node
+        // with a small gap
+        return {
+            x: rightmostNode.position.x + 500,
+            y: rightmostNode.position.y,
+        };
+    }
+
+    /**
+     * Generates a unique ID for a canvas node
+     * @returns A unique ID string
+     */
+    generateNodeId(): string {
+        return "node-" + Math.random().toString(36).substring(2, 9);
     }
 
     async addNoteToCanvas(noteFile: TFile) {
@@ -921,32 +978,6 @@ export default class Main extends Plugin {
         }
     }
 
-    calculateNewNodePosition(existingNodes: CanvasNodeData[]) {
-        // Default position if no nodes exist
-        if (!existingNodes.length) {
-            return { x: 0, y: 0 };
-        }
-
-        // Find the rightmost node
-        let maxX = Math.max(
-            ...existingNodes.map((node) => {
-                const nodeX = node.position.x;
-                const nodeWidth = node.width || 400;
-                return nodeX + nodeWidth;
-            }),
-        );
-
-        // Position the new node to the right with some padding
-        return { x: maxX + 50, y: 0 };
-    }
-
-    generateNodeId(): string {
-        // Generate a random node ID for canvas
-        return (
-            Date.now().toString() + Math.random().toString(36).substring(2, 9)
-        );
-    }
-
     updateStatusBar() {
         if (!this.statusBarItem) return;
 
@@ -1004,6 +1035,20 @@ export default class Main extends Plugin {
         new Notice(
             `Found ${allCanvasFiles.length} canvas files in vault. Check console for details.`,
         );
+    }
+
+    createTextNode(text: string): CanvasTextNodeData {
+        return {
+            id: this.generateNodeId(),
+            type: "text",
+            text,
+            position: {
+                x: 0,
+                y: 0,
+            },
+            width: 400,
+            height: 200,
+        };
     }
 }
 

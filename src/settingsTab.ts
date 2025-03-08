@@ -200,5 +200,85 @@ export class SettingsTab extends PluginSettingTab {
                 "20250308120000123 (with milliseconds)",
             );
         }
+
+        // Add a heading for the timestamp append section
+        new Setting(containerEl).setName("Link timestamp").setHeading();
+
+        // Add explanation about timestamp append
+        const timestampInfo = containerEl.createDiv("timestamp-append-info");
+        timestampInfo.createEl("p", {
+            text: "You can append a timestamp after links and embeds sent to canvas. This helps track when content was added to the canvas.",
+        });
+
+        // Add toggle for appending timestamp to links
+        new Setting(containerEl)
+            .setName("Append timestamp to links")
+            .setDesc(
+                "Add a timestamp after block links, block embeds, and note links (not applied to plain text)",
+            )
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(this.plugin.settings.appendTimestampToLinks)
+                    .onChange(async (value) => {
+                        this.plugin.settings.appendTimestampToLinks = value;
+                        await this.plugin.saveSettings();
+                        this.display(); // Refresh the display to show/hide the format setting
+                    }),
+            );
+
+        // Only show the format setting if timestamp append is enabled
+        if (this.plugin.settings.appendTimestampToLinks) {
+            new Setting(containerEl)
+                .setName("Timestamp format")
+                .setDesc(
+                    "MomentJS format for the timestamp to append after links",
+                )
+                .addText((text) =>
+                    text
+                        .setPlaceholder("[📝 ]YYYY-MM-DDTHH:mm")
+                        .setValue(this.plugin.settings.appendTimestampFormat)
+                        .onChange(async (value) => {
+                            this.plugin.settings.appendTimestampFormat = value;
+                            await this.plugin.saveSettings();
+                        }),
+                );
+
+            // Add examples of timestamp formats
+            const timestampExamples = containerEl.createDiv(
+                "timestamp-format-examples",
+            );
+            timestampExamples.createEl("p", {
+                text: "Examples:",
+                cls: "timestamp-format-examples-title",
+            });
+
+            const timestampExamplesList = timestampExamples.createEl("ul");
+
+            const addTimestampExample = (
+                format: string,
+                description: string,
+            ) => {
+                const item = timestampExamplesList.createEl("li");
+                item.createEl("code", { text: format });
+                item.createSpan({ text: ` - ${description}` });
+            };
+
+            addTimestampExample(
+                "[📝 ]YYYY-MM-DDTHH:mm",
+                "📝 2025-03-08T08:07 (with emoji)",
+            );
+            addTimestampExample(
+                "[(]YYYY-MM-DD[)]",
+                "(2025-03-08) (with parentheses)",
+            );
+            addTimestampExample(
+                "[Added: ]HH:mm",
+                "Added: 08:07 (with text prefix)",
+            );
+            addTimestampExample(
+                "[on ]dddd[, ]MMMM Do",
+                "on Saturday, March 8th (with day name)",
+            );
+        }
     }
 }

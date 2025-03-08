@@ -107,11 +107,13 @@
 }
 
 /* Block ID format examples */
-.block-id-format-info {
+.block-id-format-info,
+.timestamp-append-info {
     margin-bottom: 12px;
 }
 
-.block-id-format-examples {
+.block-id-format-examples,
+.timestamp-format-examples {
     margin-top: 8px;
     margin-bottom: 16px;
     padding: 8px 12px;
@@ -119,21 +121,25 @@
     background-color: var(--background-secondary);
 }
 
-.block-id-format-examples-title {
+.block-id-format-examples-title,
+.timestamp-format-examples-title {
     font-weight: 600;
     margin-bottom: 4px;
 }
 
-.block-id-format-examples ul {
+.block-id-format-examples ul,
+.timestamp-format-examples ul {
     margin: 0;
     padding-left: 16px;
 }
 
-.block-id-format-examples li {
+.block-id-format-examples li,
+.timestamp-format-examples li {
     margin-bottom: 4px;
 }
 
-.block-id-format-examples code {
+.block-id-format-examples code,
+.timestamp-format-examples code {
     background-color: var(--background-primary);
     padding: 2px 4px;
     border-radius: 3px;
