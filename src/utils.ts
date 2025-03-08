@@ -68,7 +68,7 @@ export class BlockReferenceUtils {
     ): { line: number; offset: number } | null {
         const lines = content.split("\n");
         const searchText = text.trim();
-        
+
         // First try exact match in a single line
         for (let i = 0; i < lines.length; i++) {
             const index = lines[i].indexOf(text);
@@ -79,7 +79,7 @@ export class BlockReferenceUtils {
                 };
             }
         }
-        
+
         // Try exact match with trimmed text
         for (let i = 0; i < lines.length; i++) {
             const index = lines[i].indexOf(searchText);
@@ -90,12 +90,12 @@ export class BlockReferenceUtils {
                 };
             }
         }
-        
+
         // If not found, try more flexible matching for task items
         if (searchText.startsWith("- [ ]")) {
             const taskPrefix = "- [ ]";
             const taskContent = searchText.substring(taskPrefix.length).trim();
-            
+
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (line.startsWith(taskPrefix) && line.includes(taskContent)) {
@@ -119,12 +119,12 @@ export class BlockReferenceUtils {
                 }
             }
         }
-        
+
         // Last resort: try matching with whitespace normalization
         for (let i = 0; i < lines.length; i++) {
-            const normalizedLine = lines[i].replace(/\s+/g, ' ').trim();
-            const normalizedText = searchText.replace(/\s+/g, ' ').trim();
-            
+            const normalizedLine = lines[i].replace(/\s+/g, " ").trim();
+            const normalizedText = searchText.replace(/\s+/g, " ").trim();
+
             if (normalizedLine === normalizedText) {
                 return {
                     line: i,

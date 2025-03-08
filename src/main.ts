@@ -379,19 +379,22 @@ export default class Main extends Plugin {
                     currentFile,
                     selectedText,
                 );
-                
+
                 // If a block ID was successfully added, update the contentToSend
                 // to include any changes made (like appended task text)
                 if (blockId) {
                     // Get the updated content from the file
                     const fileContent = await this.app.vault.read(currentFile);
                     const lines = fileContent.split("\n");
-                    
+
                     // Find the line containing the block ID
                     for (let i = 0; i < lines.length; i++) {
                         if (lines[i].includes(`^${blockId}`)) {
                             // Update contentToSend to match what's in the file
-                            contentToSend = lines[i].replace(` ^${blockId}`, "");
+                            contentToSend = lines[i].replace(
+                                ` ^${blockId}`,
+                                "",
+                            );
                             break;
                         }
                     }
@@ -408,7 +411,7 @@ export default class Main extends Plugin {
         } catch (error) {
             console.error("Error sending selection to canvas:", error);
             new Notice("Error sending selection to canvas");
-            
+
             // Restore the cursor position even if there was an error
             editor.setCursor(originalCursor);
         }
@@ -758,31 +761,33 @@ export default class Main extends Plugin {
         try {
             // Save the original cursor position
             const originalCursor = editor.getCursor();
-            
+
             // Read the file content
             const fileContent = await this.app.vault.read(file);
             const lineContent = editor.getLine(originalCursor.line);
-            
+
             // Find the position of the content in the file
             let position = BlockReferenceUtils.findTextPosition(
                 fileContent,
                 content,
             );
-            
+
             // If position not found but we're working with the current line
             if (!position && content === lineContent) {
-                console.log("Using cursor position as fallback for content match");
+                console.log(
+                    "Using cursor position as fallback for content match",
+                );
                 position = {
                     line: originalCursor.line,
                     offset: 0,
                 };
             }
-            
+
             if (!position) {
                 // Try one more approach - look for content after basic normalization
                 const lines = fileContent.split("\n");
                 const trimmedContent = content.trim();
-                
+
                 for (let i = 0; i < lines.length; i++) {
                     if (lines[i].trim() === trimmedContent) {
                         position = {
@@ -794,40 +799,52 @@ export default class Main extends Plugin {
                     }
                 }
             }
-            
+
             if (!position) {
                 console.error("Could not find content in file");
                 // Generate a block ID anyway to ensure embedding works
-                const blockId = BlockReferenceUtils.generateBlockId(this.settings);
+                const blockId = BlockReferenceUtils.generateBlockId(
+                    this.settings,
+                );
                 console.log("Generated fallback block ID:", blockId);
-                
+
                 // Try to add it to the current line but preserve cursor position
                 const line = originalCursor.line;
                 const currentContent = editor.getLine(line);
-                
+
                 if (currentContent && currentContent.trim() !== "") {
                     // Check if we need to append the task text configuration
                     let modifiedContent = currentContent;
-                    const isOpenTask = currentContent.trim().startsWith("- [ ]");
-                    
-                    if (isOpenTask && this.settings.appendTextToOpenTasks && 
-                        !currentContent.includes(this.settings.openTaskAppendText)) {
+                    const isOpenTask = currentContent
+                        .trim()
+                        .startsWith("- [ ]");
+
+                    if (
+                        isOpenTask &&
+                        this.settings.appendTextToOpenTasks &&
+                        !currentContent.includes(
+                            this.settings.openTaskAppendText,
+                        )
+                    ) {
                         // Append the custom text for tasks if enabled and not already present
-                        modifiedContent = currentContent.trimEnd() + " " + this.settings.openTaskAppendText;
+                        modifiedContent =
+                            currentContent.trimEnd() +
+                            " " +
+                            this.settings.openTaskAppendText;
                     }
-                    
+
                     // Update the file directly instead of using editor.setLine to preserve cursor
                     const lines = fileContent.split("\n");
                     lines[line] = modifiedContent + ` ^${blockId}`;
                     await this.app.vault.modify(file, lines.join("\n"));
-                    
+
                     // Restore cursor position
                     editor.setCursor(originalCursor);
-                    
+
                     console.log("Added block ID to current line as fallback");
                     return blockId;
                 }
-                
+
                 return "";
             }
 
@@ -843,15 +860,19 @@ export default class Main extends Plugin {
 
             // Generate a new block ID
             const blockId = BlockReferenceUtils.generateBlockId(this.settings);
-            
+
             // Check if we need to append the task text configuration
             let modifiedLine = line;
             const isOpenTask = line.trim().startsWith("- [ ]");
-            
-            if (isOpenTask && this.settings.appendTextToOpenTasks && 
-                !line.includes(this.settings.openTaskAppendText)) {
+
+            if (
+                isOpenTask &&
+                this.settings.appendTextToOpenTasks &&
+                !line.includes(this.settings.openTaskAppendText)
+            ) {
                 // Append the custom text for tasks if enabled and not already present
-                modifiedLine = line.trimEnd() + " " + this.settings.openTaskAppendText;
+                modifiedLine =
+                    line.trimEnd() + " " + this.settings.openTaskAppendText;
             }
 
             // Add the block ID to the line
@@ -859,7 +880,7 @@ export default class Main extends Plugin {
 
             // Update the file
             await this.app.vault.modify(file, lines.join("\n"));
-            
+
             // Restore cursor position if needed
             if (position.line === originalCursor.line) {
                 editor.setCursor(originalCursor);
