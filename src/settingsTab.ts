@@ -14,6 +14,10 @@ export class SettingsTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
+
+        // Canvas selection section
+        new Setting(containerEl).setName("Canvas selection").setHeading();
+
         new Setting(containerEl)
             .setName("Default send format")
             .setDesc("Choose the default format when sending content to canvas")
@@ -44,91 +48,6 @@ export class SettingsTab extends PluginSettingTab {
                         await this.plugin.saveSettings();
                     }),
             );
-
-        // Add a heading for the startup delay section
-        new Setting(containerEl).setName("Canvas file loading").setHeading();
-
-        // Add explanation about the startup delay
-        const delayInfo = containerEl.createDiv("canvas-delay-info");
-        delayInfo.createEl("p", {
-            text: "The plugin needs time to find canvas files after Obsidian starts. If you have a large vault or if the plugin has trouble finding your canvas files after restart, try increasing this delay.",
-        });
-
-        // Create a container for the preset buttons
-        const presetContainer = containerEl.createDiv("canvas-delay-presets");
-        presetContainer.createEl("span", { text: "Presets: " });
-
-        // Helper function to create preset buttons
-        const createPresetButton = (label: string, value: number) => {
-            const btn = presetContainer.createEl("button", { text: label });
-            btn.addEventListener("click", async () => {
-                this.plugin.settings.startupLoadDelay = value;
-                await this.plugin.saveSettings();
-                this.display(); // Refresh the display
-            });
-        };
-
-        // Create preset buttons for seconds and minutes
-        createPresetButton("5s", 5);
-        createPresetButton("10s", 10);
-        createPresetButton("30s", 30);
-        createPresetButton("1m", 60);
-        createPresetButton("2m", 120);
-        createPresetButton("5m", 300);
-        createPresetButton("10m", 600);
-
-        // Create a setting with a slider and display of the current value
-        const delaySlider = new Setting(containerEl)
-            .setName("Startup load delay")
-            .setDesc(
-                "Adjust how long the plugin waits before trying to find canvas files after Obsidian starts.",
-            )
-            .addSlider((slider) => {
-                slider
-                    .setLimits(1, 600, 1) // 1 second to 10 minutes
-                    .setValue(this.plugin.settings.startupLoadDelay)
-                    .setDynamicTooltip()
-                    .onChange(async (value) => {
-                        this.plugin.settings.startupLoadDelay = value;
-                        await this.plugin.saveSettings();
-
-                        // Update the name to show the current value
-                        updateSliderName(value);
-                    });
-                return slider;
-            })
-            .addExtraButton((button) =>
-                button
-                    .setIcon("reset")
-                    .setTooltip("Reset to default (5 seconds)")
-                    .onClick(async () => {
-                        this.plugin.settings.startupLoadDelay = 5;
-                        await this.plugin.saveSettings();
-                        this.display(); // Refresh the display
-                    }),
-            );
-
-        // Function to update the slider name with the current value
-        const updateSliderName = (value: number) => {
-            let displayValue: string;
-            if (value < 60) {
-                // Less than a minute, show in seconds
-                displayValue = `${value} seconds`;
-            } else {
-                // More than a minute, show in minutes and seconds
-                const minutes = Math.floor(value / 60);
-                const seconds = value % 60;
-                if (seconds === 0) {
-                    displayValue = `${minutes} minute${minutes > 1 ? "s" : ""}`;
-                } else {
-                    displayValue = `${minutes} minute${minutes > 1 ? "s" : ""} ${seconds} second${seconds > 1 ? "s" : ""}`;
-                }
-            }
-            delaySlider.setName(`Startup load delay (${displayValue})`);
-        };
-
-        // Initialize the slider name
-        updateSliderName(this.plugin.settings.startupLoadDelay);
 
         // Add a heading for the block ID format section
         new Setting(containerEl).setName("Block ID format").setHeading();
@@ -280,5 +199,192 @@ export class SettingsTab extends PluginSettingTab {
                 "on Saturday, March 8th (with day name)",
             );
         }
+
+        // Node size settings section
+        new Setting(containerEl).setName("Canvas node sizes").setHeading();
+
+        // Link and block link node size settings
+        new Setting(containerEl).setName("Link nodes (note links and block links)").setHeading();
+
+        new Setting(containerEl)
+            .setName("Link node width")
+            .setDesc("Width of nodes for note links and block links")
+            .addText((text) =>
+                text
+                    .setValue(this.plugin.settings.linkNodeWidth.toString())
+                    .onChange(async (value) => {
+                        const width = parseInt(value);
+                        if (!isNaN(width) && width > 0) {
+                            this.plugin.settings.linkNodeWidth = width;
+                            await this.plugin.saveSettings();
+                        }
+                    }),
+            );
+
+        new Setting(containerEl)
+            .setName("Link node height")
+            .setDesc("Height of nodes for note links and block links")
+            .addText((text) =>
+                text
+                    .setValue(this.plugin.settings.linkNodeHeight.toString())
+                    .onChange(async (value) => {
+                        const height = parseInt(value);
+                        if (!isNaN(height) && height > 0) {
+                            this.plugin.settings.linkNodeHeight = height;
+                            await this.plugin.saveSettings();
+                        }
+                    }),
+            );
+
+        // Content node size settings (block embeds and plain text)
+        new Setting(containerEl).setName("Content nodes (block embeds and plain text)").setHeading();
+
+        new Setting(containerEl)
+            .setName("Content node width")
+            .setDesc("Width of nodes for block embeds and plain text")
+            .addText((text) =>
+                text
+                    .setValue(this.plugin.settings.contentNodeWidth.toString())
+                    .onChange(async (value) => {
+                        const width = parseInt(value);
+                        if (!isNaN(width) && width > 0) {
+                            this.plugin.settings.contentNodeWidth = width;
+                            await this.plugin.saveSettings();
+                        }
+                    }),
+            );
+
+        new Setting(containerEl)
+            .setName("Content node height")
+            .setDesc("Height of nodes for block embeds and plain text")
+            .addText((text) =>
+                text
+                    .setValue(this.plugin.settings.contentNodeHeight.toString())
+                    .onChange(async (value) => {
+                        const height = parseInt(value);
+                        if (!isNaN(height) && height > 0) {
+                            this.plugin.settings.contentNodeHeight = height;
+                            await this.plugin.saveSettings();
+                        }
+                    }),
+            );
+
+        // File node size settings (note content)
+        new Setting(containerEl).setName("File nodes (note content)").setHeading();
+
+        new Setting(containerEl)
+            .setName("File node width")
+            .setDesc("Width of nodes for note content")
+            .addText((text) =>
+                text
+                    .setValue(this.plugin.settings.fileNodeWidth.toString())
+                    .onChange(async (value) => {
+                        const width = parseInt(value);
+                        if (!isNaN(width) && width > 0) {
+                            this.plugin.settings.fileNodeWidth = width;
+                            await this.plugin.saveSettings();
+                        }
+                    }),
+            );
+
+        new Setting(containerEl)
+            .setName("File node height")
+            .setDesc("Height of nodes for note content")
+            .addText((text) =>
+                text
+                    .setValue(this.plugin.settings.fileNodeHeight.toString())
+                    .onChange(async (value) => {
+                        const height = parseInt(value);
+                        if (!isNaN(height) && height > 0) {
+                            this.plugin.settings.fileNodeHeight = height;
+                            await this.plugin.saveSettings();
+                        }
+                    }),
+            );
+        
+        // Add a heading for the startup delay section
+        new Setting(containerEl).setName("Canvas file loading").setHeading();
+
+        // Add explanation about the startup delay
+        const delayInfo = containerEl.createDiv("canvas-delay-info");
+        delayInfo.createEl("p", {
+            text: "The plugin needs time to find canvas files after Obsidian starts. If you have a large vault or if the plugin has trouble finding your canvas files after restart, try increasing this delay.",
+        });
+
+        // Create a container for the preset buttons
+        const presetContainer = containerEl.createDiv("canvas-delay-presets");
+        presetContainer.createEl("span", { text: "Presets: " });
+
+        // Helper function to create preset buttons
+        const createPresetButton = (label: string, value: number) => {
+            const btn = presetContainer.createEl("button", { text: label });
+            btn.addEventListener("click", async () => {
+                this.plugin.settings.startupLoadDelay = value;
+                await this.plugin.saveSettings();
+                this.display(); // Refresh the display
+            });
+        };
+
+        // Create preset buttons for seconds and minutes
+        createPresetButton("5s", 5);
+        createPresetButton("10s", 10);
+        createPresetButton("30s", 30);
+        createPresetButton("1m", 60);
+        createPresetButton("2m", 120);
+        createPresetButton("5m", 300);
+        createPresetButton("10m", 600);
+
+        // Create a setting with a slider and display of the current value
+        const delaySlider = new Setting(containerEl)
+            .setName("Startup load delay")
+            .setDesc(
+                "Adjust how long the plugin waits before trying to find canvas files after Obsidian starts.",
+            )
+            .addSlider((slider) => {
+                slider
+                    .setLimits(1, 600, 1) // 1 second to 10 minutes
+                    .setValue(this.plugin.settings.startupLoadDelay)
+                    .setDynamicTooltip()
+                    .onChange(async (value) => {
+                        this.plugin.settings.startupLoadDelay = value;
+                        await this.plugin.saveSettings();
+
+                        // Update the name to show the current value
+                        updateSliderName(value);
+                    });
+                return slider;
+            })
+            .addExtraButton((button) =>
+                button
+                    .setIcon("reset")
+                    .setTooltip("Reset to default (5 seconds)")
+                    .onClick(async () => {
+                        this.plugin.settings.startupLoadDelay = 5;
+                        await this.plugin.saveSettings();
+                        this.display(); // Refresh the display
+                    }),
+            );
+
+        // Function to update the slider name with the current value
+        const updateSliderName = (value: number) => {
+            let displayValue: string;
+            if (value < 60) {
+                // Less than a minute, show in seconds
+                displayValue = `${value} seconds`;
+            } else {
+                // More than a minute, show in minutes and seconds
+                const minutes = Math.floor(value / 60);
+                const seconds = value % 60;
+                if (seconds === 0) {
+                    displayValue = `${minutes} minute${minutes > 1 ? "s" : ""}`;
+                } else {
+                    displayValue = `${minutes} minute${minutes > 1 ? "s" : ""} ${seconds} second${seconds > 1 ? "s" : ""}`;
+                }
+            }
+            delaySlider.setName(`Startup load delay (${displayValue})`);
+        };
+
+        // Initialize the slider name
+        updateSliderName(this.plugin.settings.startupLoadDelay);
     }
 }

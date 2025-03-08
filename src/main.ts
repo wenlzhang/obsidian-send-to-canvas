@@ -725,6 +725,10 @@ export default class Main extends Plugin {
         // Generate the content to add based on format
         let textContent = content;
 
+        // Determine node dimensions based on format
+        let nodeWidth: number;
+        let nodeHeight: number;
+
         if (format === "link" || format === "embed") {
             // Create a link or embed with the block ID
             let linkText = "";
@@ -746,6 +750,14 @@ export default class Main extends Plugin {
                 );
                 textContent += ` ${timestamp}`;
             }
+
+            // Use link node dimensions for links
+            nodeWidth = this.settings.linkNodeWidth;
+            nodeHeight = this.settings.linkNodeHeight;
+        } else {
+            // Plain text - use content node dimensions
+            nodeWidth = this.settings.contentNodeWidth;
+            nodeHeight = this.settings.contentNodeHeight;
         }
 
         // Create the new node
@@ -756,8 +768,8 @@ export default class Main extends Plugin {
                 x: newNodePosition.x,
                 y: newNodePosition.y,
             },
-            width: 400,
-            height: 200,
+            width: nodeWidth,
+            height: nodeHeight,
             text: textContent,
         };
 
@@ -876,8 +888,8 @@ export default class Main extends Plugin {
                 x: newNodePosition.x,
                 y: newNodePosition.y,
             },
-            width: 400,
-            height: 400,
+            width: this.settings.fileNodeWidth,
+            height: this.settings.fileNodeHeight,
         };
 
         // Add the new node to the canvas
@@ -970,8 +982,8 @@ export default class Main extends Plugin {
                 x: newNodePosition.x,
                 y: newNodePosition.y,
             },
-            width: 400,
-            height: 200,
+            width: this.settings.linkNodeWidth,
+            height: this.settings.linkNodeHeight,
         };
 
         // Add the new node to the canvas

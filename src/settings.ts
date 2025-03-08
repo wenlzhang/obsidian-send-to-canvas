@@ -9,6 +9,14 @@ export interface SendToCanvasSettings {
     blockIdDateFormat: string; // MomentJS format for block IDs
     appendTimestampToLinks: boolean; // Whether to append a timestamp after links and embeds
     appendTimestampFormat: string; // MomentJS format for the timestamp to append
+
+    // Node size settings
+    linkNodeWidth: number;
+    linkNodeHeight: number;
+    contentNodeWidth: number;
+    contentNodeHeight: number;
+    fileNodeWidth: number;
+    fileNodeHeight: number;
 }
 
 export const DEFAULT_SETTINGS: SendToCanvasSettings = {
@@ -20,6 +28,14 @@ export const DEFAULT_SETTINGS: SendToCanvasSettings = {
     blockIdDateFormat: "YYYY-MM-DDTHH-mm-ss",
     appendTimestampToLinks: false,
     appendTimestampFormat: "[📝 ]YYYY-MM-DDTHH:mm",
+
+    // Default node sizes
+    linkNodeWidth: 400,
+    linkNodeHeight: 100,
+    contentNodeWidth: 400,
+    contentNodeHeight: 200,
+    fileNodeWidth: 400,
+    fileNodeHeight: 400,
 };
 
 export type SendFormat = "plain" | "link" | "embed";
