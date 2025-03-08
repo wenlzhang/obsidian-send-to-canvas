@@ -4,6 +4,8 @@
 
 An [Obsidian](https://obsidian.md/) plugin that allows you to send tasks, blocks, and notes to Canvas files as plain text, links, and embeds.
 
+![demo](/docs/attachment/demo.gif)
+
 ## Features
 
 - **Multiple content formats**:
