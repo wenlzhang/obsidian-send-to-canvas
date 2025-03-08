@@ -215,36 +215,42 @@ export class SettingsTab extends PluginSettingTab {
                     .onChange(async (value) => {
                         this.plugin.settings.appendTextToOpenTasks = value;
                         await this.plugin.saveSettings();
+                        this.display(); // Refresh the display to show/hide the custom text settings
                     }),
             );
 
-        new Setting(containerEl)
-            .setName("Text to append")
-            .setDesc("Custom text to append to open tasks before the block ID")
-            .addText((text) =>
-                text
-                    .setValue(this.plugin.settings.openTaskAppendText)
-                    .onChange(async (value) => {
-                        this.plugin.settings.openTaskAppendText = value;
-                        await this.plugin.saveSettings();
-                    }),
-            );
+        // Only show the custom text settings if append text to open tasks is enabled
+        if (this.plugin.settings.appendTextToOpenTasks) {
+            new Setting(containerEl)
+                .setName("Text to append")
+                .setDesc(
+                    "Custom text to append to open tasks before the block ID",
+                )
+                .addText((text) =>
+                    text
+                        .setValue(this.plugin.settings.openTaskAppendText)
+                        .onChange(async (value) => {
+                            this.plugin.settings.openTaskAppendText = value;
+                            await this.plugin.saveSettings();
+                        }),
+                );
 
-        // Add examples of task customization
-        const taskExamplesDiv = containerEl.createDiv({
-            cls: "setting-item-description timestamp-format-examples",
-        });
-        taskExamplesDiv.createSpan({
-            text: "Example:",
-        });
-        taskExamplesDiv.createEl("br");
-        taskExamplesDiv.createSpan({
-            text: "Original: - [ ] Task description",
-        });
-        taskExamplesDiv.createEl("br");
-        taskExamplesDiv.createSpan({
-            text: "Modified: - [ ] Task description [l:: #Canvas ]",
-        });
+            // Add examples of task customization
+            const taskExamplesDiv = containerEl.createDiv({
+                cls: "setting-item-description timestamp-format-examples",
+            });
+            taskExamplesDiv.createSpan({
+                text: "Example:",
+            });
+            taskExamplesDiv.createEl("br");
+            taskExamplesDiv.createSpan({
+                text: "Original: - [ ] Task description",
+            });
+            taskExamplesDiv.createEl("br");
+            taskExamplesDiv.createSpan({
+                text: "Modified: - [ ] Task description [l:: #Canvas ]",
+            });
+        }
 
         // Node size settings section
         new Setting(containerEl).setName("Canvas node sizes").setHeading();
