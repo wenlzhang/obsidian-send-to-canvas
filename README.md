@@ -2,7 +2,7 @@
 
 [![GitHub release (Latest by date)](https://img.shields.io/github/v/release/wenlzhang/obsidian-send-to-canvas)](https://github.com/wenlzhang/obsidian-send-to-canvas/releases) ![GitHub all releases](https://img.shields.io/github/downloads/wenlzhang/obsidian-send-to-canvas/total?color=success)
 
-An [Obsidian](https://obsidian.md/) plugin that allows you to send tasks, blocks and notes to Canvas files.
+An [Obsidian](https://obsidian.md/) plugin that allows you to send tasks, blocks, and notes to Canvas files as plain text, links, and embeds.
 
 ## Features
 
