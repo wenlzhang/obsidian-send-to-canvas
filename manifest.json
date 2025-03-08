@@ -1,7 +1,7 @@
 {
 	"id": "send-to-canvas",
 	"name": "Send to Canvas",
-	"version": "0.1.2",
+	"version": "0.1.1",
 	"minAppVersion": "1.0.0",
 	"author": "wenlzhang",
 	"authorUrl": "https://github.com/wenlzhang",

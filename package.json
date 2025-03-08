@@ -1,6 +1,6 @@
 {
     "name": "send-to-canvas",
-    "version": "0.1.2",
+    "version": "0.1.1",
     "description": "Send tasks, blocks, and notes to Canvas files as plain text, links, and embeds.",
     "main": "main.js",
     "scripts": {
