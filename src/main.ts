@@ -872,9 +872,16 @@ export default class Main extends Plugin {
                 textContent += ` ${timestamp}`;
             }
 
-            // Use link node dimensions for links
-            nodeWidth = this.settings.linkNodeWidth;
-            nodeHeight = this.settings.linkNodeHeight;
+            // Use appropriate node dimensions based on format
+            if (format === "link") {
+                // Use link node dimensions for links
+                nodeWidth = this.settings.linkNodeWidth;
+                nodeHeight = this.settings.linkNodeHeight;
+            } else {
+                // Use content node dimensions for embeds
+                nodeWidth = this.settings.contentNodeWidth;
+                nodeHeight = this.settings.contentNodeHeight;
+            }
         } else {
             // Plain text - use content node dimensions
             nodeWidth = this.settings.contentNodeWidth;
