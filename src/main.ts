@@ -755,12 +755,56 @@ export default class Main extends Plugin {
     }
 
     /**
-     * Adds a block ID to the selected text in the editor
-     * @param editor The editor instance
-     * @param file The current file
-     * @param content The content to add a block ID to
-     * @returns The generated block ID
+     * Calculates a position for a new node based on existing nodes
+     * @param nodes Existing nodes in the canvas
+     * @returns Position for the new node
      */
+    calculateNewNodePosition(nodes: CanvasNodeData[]): {
+        x: number;
+        y: number;
+    } {
+        // Default position if there are no nodes
+        if (!nodes || nodes.length === 0) {
+            return { x: 0, y: 0 };
+        }
+
+        // Filter out nodes without a valid position property
+        const validNodes = nodes.filter(
+            (node) =>
+                node.position &&
+                typeof node.position.x === "number" &&
+                typeof node.position.y === "number",
+        );
+
+        // If no valid nodes, return default position
+        if (validNodes.length === 0) {
+            return { x: 0, y: 0 };
+        }
+
+        // Find the rightmost node
+        let rightmostNode = validNodes[0];
+        for (const node of validNodes) {
+            if (node.position.x > rightmostNode.position.x) {
+                rightmostNode = node;
+            }
+        }
+
+        // Position the new node to the right of the rightmost node
+        // with a small gap
+        return {
+            x: rightmostNode.position.x + 500,
+            y: rightmostNode.position.y,
+        };
+    }
+
+    /**
+     * Generates a unique ID for a canvas node
+     * @returns A unique ID string
+     */
+    generateNodeId(): string {
+        return "node-" + Math.random().toString(36).substring(2, 9);
+    }
+
     async addBlockIdToSelection(
         editor: Editor,
         file: TFile,
@@ -945,44 +989,6 @@ export default class Main extends Plugin {
                 `Failed to save canvas: ${error.message || "Unknown error"}`,
             );
         }
-    }
-
-    /**
-     * Calculates a position for a new node based on existing nodes
-     * @param nodes Existing nodes in the canvas
-     * @returns Position for the new node
-     */
-    calculateNewNodePosition(nodes: CanvasNodeData[]): {
-        x: number;
-        y: number;
-    } {
-        // Default position if there are no nodes
-        if (!nodes || nodes.length === 0) {
-            return { x: 0, y: 0 };
-        }
-
-        // Find the rightmost node
-        let rightmostNode = nodes[0];
-        for (const node of nodes) {
-            if (node.position.x > rightmostNode.position.x) {
-                rightmostNode = node;
-            }
-        }
-
-        // Position the new node to the right of the rightmost node
-        // with a small gap
-        return {
-            x: rightmostNode.position.x + 500,
-            y: rightmostNode.position.y,
-        };
-    }
-
-    /**
-     * Generates a unique ID for a canvas node
-     * @returns A unique ID string
-     */
-    generateNodeId(): string {
-        return "node-" + Math.random().toString(36).substring(2, 9);
     }
 
     async addNoteToCanvas(noteFile: TFile) {
