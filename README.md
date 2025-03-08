@@ -26,7 +26,7 @@ An [Obsidian](https://obsidian.md/) plugin that allows you to send tasks, blocks
   - Consistent sizing between block embeds and text content
 - **User experience**:
   - Remember last selected canvas file
-  - Status bar indicator showing current canvas
+  - Status bar indicator selecting and showing target canvas
   - Customizable startup delay for large vaults
 - **Smart text selection**: Automatically uses the entire line when no text is selected
 
@@ -75,10 +75,6 @@ Right-click in the editor to access the "Send to canvas" context menu option. Th
 
 If no text is selected when you use the context menu, the plugin will automatically use the entire line where your cursor is positioned.
 
-### Keyboard Shortcuts
-
-You can set up keyboard shortcuts for any of the commands in Obsidian's Hotkeys settings.
-
 ## Settings
 
 ### Canvas Selection
@@ -125,12 +121,14 @@ The plugin needs time to find canvas files after Obsidian starts. If you have a 
 
 ## Installation
 
+### Obsidian Community Plugin Store
+
 1. Open Obsidian Settings
 2. Go to Community Plugins and disable Safe Mode
 3. Click Browse and search for "Send to Canvas"
 4. Install the plugin and enable it
 
-## Manual Installation
+### Manual Installation
 
 1. Download the latest release from the [GitHub releases page](https://github.com/wenlzhang/obsidian-send-to-canvas/releases)
 2. Extract the files to your Obsidian plugins folder: `.obsidian/plugins/obsidian-send-to-canvas/`
