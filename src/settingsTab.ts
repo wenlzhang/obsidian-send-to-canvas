@@ -70,7 +70,23 @@ export class SettingsTab extends PluginSettingTab {
                         this.display(); // Refresh the display to show/hide the custom text settings
                     }),
             );
-        
+        // Only show the custom text settings if append text to open tasks is enabled
+        if (this.plugin.settings.appendTextToOpenTasks) {
+            new Setting(containerEl)
+                .setName("Text to append")
+                .setDesc(
+                    "Custom text to append to open tasks before the block ID",
+                )
+                .addText((text) =>
+                    text
+                        .setValue(this.plugin.settings.openTaskAppendText)
+                        .onChange(async (value) => {
+                            this.plugin.settings.openTaskAppendText = value;
+                            await this.plugin.saveSettings();
+                        }),
+                );
+        }
+
         // Add a heading for the block ID format section with description
         new Setting(containerEl)
             .setName("Block ID format")
@@ -150,23 +166,6 @@ export class SettingsTab extends PluginSettingTab {
                         .setValue(this.plugin.settings.appendTimestampFormat)
                         .onChange(async (value) => {
                             this.plugin.settings.appendTimestampFormat = value;
-                            await this.plugin.saveSettings();
-                        }),
-                );
-        }
-
-        // Only show the custom text settings if append text to open tasks is enabled
-        if (this.plugin.settings.appendTextToOpenTasks) {
-            new Setting(containerEl)
-                .setName("Text to append")
-                .setDesc(
-                    "Custom text to append to open tasks before the block ID",
-                )
-                .addText((text) =>
-                    text
-                        .setValue(this.plugin.settings.openTaskAppendText)
-                        .onChange(async (value) => {
-                            this.plugin.settings.openTaskAppendText = value;
                             await this.plugin.saveSettings();
                         }),
                 );
