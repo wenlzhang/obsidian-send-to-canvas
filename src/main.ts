@@ -889,6 +889,8 @@ export default class Main extends Plugin {
                 this.selectedCanvas,
                 JSON.stringify(canvasData, null, 2),
             );
+
+            new Notice(`Note sent to canvas: ${this.selectedCanvas.name}`);
         } catch (error) {
             console.error("Error saving canvas:", error);
             new Notice(
@@ -948,11 +950,22 @@ export default class Main extends Plugin {
         // Determine the position for the new node
         const newNodePosition = this.calculateNewNodePosition(canvasData.nodes);
 
+        // Create the note link text
+        let linkText = `[[${noteFile.basename}]]`;
+
+        // Append timestamp if enabled
+        if (this.settings.appendTimestampToLinks) {
+            const timestamp = moment().format(
+                this.settings.appendTimestampFormat,
+            );
+            linkText += ` ${timestamp}`;
+        }
+
         // Create a new text node with the note link in Obsidian markdown format
         const newNode: CanvasTextNodeData = {
             id: this.generateNodeId(),
             type: "text",
-            text: `[[${noteFile.basename}]]`,
+            text: linkText,
             position: {
                 x: newNodePosition.x,
                 y: newNodePosition.y,
