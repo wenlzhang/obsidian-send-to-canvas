@@ -14,24 +14,7 @@ export class SettingsTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-        // Canvas selection section
-        new Setting(containerEl).setName("Canvas selection").setHeading();
-
-        new Setting(containerEl)
-            .setName("Default send format")
-            .setDesc("Choose the default format when sending content to canvas")
-            .addDropdown((dropdown) =>
-                dropdown
-                    .addOption("plain", "Plain text")
-                    .addOption("link", "Block link")
-                    .addOption("embed", "Block embed")
-                    .setValue(this.plugin.settings.defaultFormat)
-                    .onChange(async (value: SendFormat) => {
-                        this.plugin.settings.defaultFormat = value;
-                        await this.plugin.saveSettings();
-                    }),
-            );
-
+        // General settings
         new Setting(containerEl)
             .setName("Remember last canvas")
             .setDesc(
@@ -48,9 +31,9 @@ export class SettingsTab extends PluginSettingTab {
                     }),
             );
 
-        // Open task customization section
+        // Open task settings
         new Setting(containerEl)
-            .setName("Open task customization")
+            .setName("Open task")
             .setDesc(
                 "Customize how open tasks (lines starting with '- [ ]') are sent to canvas. You can append custom text like tags or metadata to tasks.",
             )
@@ -87,9 +70,9 @@ export class SettingsTab extends PluginSettingTab {
                 );
         }
 
-        // Add a heading for the block ID format section with description
+        // Block ID settings
         new Setting(containerEl)
-            .setName("Block ID format")
+            .setName("Block ID")
             .setDesc(
                 "You can customize the format of block IDs created when sending content to canvas. By default, random alphanumeric IDs are used.",
             )
@@ -129,7 +112,7 @@ export class SettingsTab extends PluginSettingTab {
                 );
         }
 
-        // Add a heading for the timestamp append section with description
+        // Link timestamp settings
         new Setting(containerEl)
             .setName("Link timestamp")
             .setDesc(
@@ -171,9 +154,9 @@ export class SettingsTab extends PluginSettingTab {
                 );
         }
 
-        // Node size settings section
+        // Canvas node size settings
         new Setting(containerEl)
-            .setName("Canvas node sizes")
+            .setName("Canvas node size")
             .setDesc(
                 "Customize the dimensions of nodes created in canvas files. Default sizes are 400×100 for links, 400×200 for content, and 400×400 for note content.",
             )
@@ -284,7 +267,7 @@ export class SettingsTab extends PluginSettingTab {
                     }),
             );
 
-        // Add a heading for the startup delay section with description
+        // Canvas file loading settings
         new Setting(containerEl)
             .setName("Canvas file loading")
             .setDesc(
