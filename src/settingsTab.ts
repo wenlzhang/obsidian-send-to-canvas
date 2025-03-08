@@ -48,6 +48,29 @@ export class SettingsTab extends PluginSettingTab {
                     }),
             );
 
+        // Open task customization section
+        new Setting(containerEl)
+            .setName("Open task customization")
+            .setDesc(
+                "Customize how open tasks (lines starting with '- [ ]') are sent to canvas. You can append custom text like tags or metadata to tasks.",
+            )
+            .setHeading();
+
+        new Setting(containerEl)
+            .setName("Append text to open tasks")
+            .setDesc(
+                "Add custom text to open tasks (lines starting with '- [ ]') before creating block IDs",
+            )
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(this.plugin.settings.appendTextToOpenTasks)
+                    .onChange(async (value) => {
+                        this.plugin.settings.appendTextToOpenTasks = value;
+                        await this.plugin.saveSettings();
+                        this.display(); // Refresh the display to show/hide the custom text settings
+                    }),
+            );
+        
         // Add a heading for the block ID format section with description
         new Setting(containerEl)
             .setName("Block ID format")
@@ -131,29 +154,6 @@ export class SettingsTab extends PluginSettingTab {
                         }),
                 );
         }
-
-        // Open task customization section
-        new Setting(containerEl)
-            .setName("Open task customization")
-            .setDesc(
-                "Customize how open tasks (lines starting with '- [ ]') are sent to canvas. You can append custom text like tags or metadata to tasks.",
-            )
-            .setHeading();
-
-        new Setting(containerEl)
-            .setName("Append text to open tasks")
-            .setDesc(
-                "Add custom text to open tasks (lines starting with '- [ ]') before creating block IDs",
-            )
-            .addToggle((toggle) =>
-                toggle
-                    .setValue(this.plugin.settings.appendTextToOpenTasks)
-                    .onChange(async (value) => {
-                        this.plugin.settings.appendTextToOpenTasks = value;
-                        await this.plugin.saveSettings();
-                        this.display(); // Refresh the display to show/hide the custom text settings
-                    }),
-            );
 
         // Only show the custom text settings if append text to open tasks is enabled
         if (this.plugin.settings.appendTextToOpenTasks) {

@@ -1,6 +1,8 @@
 # Send to Canvas
 
-An Obsidian plugin that allows you to send text selections, blocks, and notes to Canvas files.
+[![GitHub release (Latest by date)](https://img.shields.io/github/v/release/wenlzhang/obsidian-send-to-canvas)](https://github.com/wenlzhang/obsidian-send-to-canvas/releases) ![GitHub all releases](https://img.shields.io/github/downloads/wenlzhang/obsidian-send-to-canvas/total?color=success)
+
+An [Obsidian](https://obsidian.md/) plugin that allows you to send tasks, blocks and notes to Canvas files.
 
 ## Features
 
@@ -10,12 +12,12 @@ An Obsidian plugin that allows you to send text selections, blocks, and notes to
   - Send text as block embeds
   - Send entire notes as note links
   - Send entire notes as note embeds
-- **Block ID customization**:
-  - Use date-based or random block IDs
-  - Customize block ID format using MomentJS tokens
 - **Open task customization**:
   - Append custom text to open tasks (lines starting with "- [ ]")
   - Preserve original task formatting
+- **Block ID customization**:
+  - Use date-based or random block IDs
+  - Customize block ID format using MomentJS tokens
 - **Timestamp tracking**:
   - Append timestamps to links and embeds
   - Customize timestamp format
@@ -78,6 +80,14 @@ You can customize the format of block IDs using MomentJS formatting tokens. Here
 - `YYMMDD-HHmm` → 250308-1200 (shorter format)
 - `YYYYMMDDHHmmssSSS` → 20250308120000123 (with milliseconds)
 
+### Open Task Customization
+
+You can append custom text to open tasks (lines starting with "- [ ]") when sending them to Canvas. This is useful for adding tags, metadata, or other information to tasks.
+
+Example:
+- Original: `- [ ] Task description`
+- Modified: `- [ ] Task description [l:: #Canvas ]`
+
 ### Timestamp Format
 
 When appending timestamps to links, you can customize the format using MomentJS formatting tokens. Here are some examples:
@@ -86,14 +96,6 @@ When appending timestamps to links, you can customize the format using MomentJS 
 - `[(]YYYY-MM-DD[)]` → (2025-03-08) (with parentheses)
 - `[Added: ]HH:mm` → Added: 08:07 (with text prefix)
 - `[on ]dddd[, ]MMMM Do` → on Saturday, March 8th (with day name)
-
-### Open Task Customization
-
-You can append custom text to open tasks (lines starting with "- [ ]") when sending them to Canvas. This is useful for adding tags, metadata, or other information to tasks.
-
-Example:
-- Original: `- [ ] Task description`
-- Modified: `- [ ] Task description [l:: #Canvas ]`
 
 ### Canvas Node Sizes
 
