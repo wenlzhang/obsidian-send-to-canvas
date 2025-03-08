@@ -60,6 +60,21 @@ An [Obsidian](https://obsidian.md/) plugin that allows you to send tasks, blocks
    - "Send note embed" to embed the current note
 4. The content will be added to your selected canvas file
 
+### Context Menu
+
+Right-click in the editor to access the "Send to canvas" context menu option. This provides a convenient way to send content to canvas without using commands or keyboard shortcuts:
+
+1. Right-click anywhere in your note
+2. Select "Send to canvas" from the context menu
+3. Choose from the available options that appear near your cursor:
+   - Send as plain text
+   - Send as block link
+   - Send as block embed
+   - Send note link
+   - Send note embed
+
+If no text is selected when you use the context menu, the plugin will automatically use the entire line where your cursor is positioned.
+
 ### Keyboard Shortcuts
 
 You can set up keyboard shortcuts for any of the commands in Obsidian's Hotkeys settings.
