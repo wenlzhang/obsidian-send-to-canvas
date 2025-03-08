@@ -342,13 +342,15 @@ export default class Main extends Plugin {
             return;
         }
 
+        // Save the original cursor position to restore it later
+        const originalCursor = editor.getCursor();
+
         // Get the selection
         let selectedText = editor.getSelection();
 
         // If no text is selected, use the current line without visually selecting it
         if (!selectedText || selectedText.trim() === "") {
-            const cursor = editor.getCursor();
-            const line = editor.getLine(cursor.line);
+            const line = editor.getLine(originalCursor.line);
 
             if (line && line.trim() !== "") {
                 // Use the current line but don't visually select it
@@ -362,110 +364,53 @@ export default class Main extends Plugin {
             }
         }
 
-        // Check if the content is a task and append custom text if enabled
-        // Only modify the original text for link and embed formats
-        const contentToSend = selectedText;
+        // Check if the content is a task
         const isOpenTask = selectedText.trim().startsWith("- [ ]");
+        let contentToSend = selectedText;
 
         // Generate a block ID for link and embed formats
         let blockId = "";
 
         try {
             if (format === "link" || format === "embed") {
-                // For link and embed formats, modify the original text if it's an open task
-                if (isOpenTask && this.settings.appendTextToOpenTasks) {
-                    // Append the custom text to the task before creating the block ID
-                    // First check if the text already has a block ID
-                    const existingIdMatch =
-                        selectedText.match(/\^([a-zA-Z0-9-]+)$/);
-
-                    // Check if the custom text is already appended to avoid duplicating it
-                    const customTextAlreadyAppended = selectedText.includes(
-                        this.settings.openTaskAppendText,
-                    );
-
-                    if (existingIdMatch) {
-                        // If there's already a block ID, insert the custom text before it (if not already present)
-                        if (!customTextAlreadyAppended) {
-                            const blockIdPart = existingIdMatch[0];
-                            const textWithoutBlockId = selectedText
-                                .substring(
-                                    0,
-                                    selectedText.length - blockIdPart.length,
-                                )
-                                .trimEnd();
-
-                            // Update the text in the editor
-                            const updatedText =
-                                textWithoutBlockId +
-                                " " +
-                                this.settings.openTaskAppendText +
-                                " " +
-                                blockIdPart;
-
-                            // Find the position of the selected text in the editor
-                            const fileContent =
-                                await this.app.vault.read(currentFile);
-                            const position =
-                                BlockReferenceUtils.findTextPosition(
-                                    fileContent,
-                                    selectedText,
-                                );
-
-                            if (position) {
-                                // Update the file with the modified text
-                                const lines = fileContent.split("\n");
-                                lines[position.line] = updatedText;
-                                await this.app.vault.modify(
-                                    currentFile,
-                                    lines.join("\n"),
-                                );
-
-                                // Update the selected text for the canvas
-                                selectedText = updatedText;
-                            }
+                // Add a block ID to the selection
+                blockId = await this.addBlockIdToSelection(
+                    editor,
+                    currentFile,
+                    selectedText,
+                );
+                
+                // If a block ID was successfully added, update the contentToSend
+                // to include any changes made (like appended task text)
+                if (blockId) {
+                    // Get the updated content from the file
+                    const fileContent = await this.app.vault.read(currentFile);
+                    const lines = fileContent.split("\n");
+                    
+                    // Find the line containing the block ID
+                    for (let i = 0; i < lines.length; i++) {
+                        if (lines[i].includes(`^${blockId}`)) {
+                            // Update contentToSend to match what's in the file
+                            contentToSend = lines[i].replace(` ^${blockId}`, "");
+                            break;
                         }
-
-                        // Extract the block ID from the match
-                        blockId = existingIdMatch[1];
-                    } else {
-                        // No existing block ID
-                        if (!customTextAlreadyAppended) {
-                            // Append the custom text only if it's not already there
-                            selectedText =
-                                selectedText.trimEnd() +
-                                " " +
-                                this.settings.openTaskAppendText;
-                        }
-
-                        // Add a block ID to the current selection
-                        blockId = await this.addBlockIdToSelection(
-                            editor,
-                            currentFile,
-                            selectedText,
-                        );
                     }
-                } else {
-                    // Not an open task or custom text not enabled, just add a block ID
-                    blockId = await this.addBlockIdToSelection(
-                        editor,
-                        currentFile,
-                        selectedText,
-                    );
                 }
             }
 
             // Add the content to the canvas
-            await this.addToCanvas(format, selectedText, currentFile, blockId);
+            await this.addToCanvas(format, contentToSend, currentFile, blockId);
+
+            // Restore the original cursor position
+            editor.setCursor(originalCursor);
 
             new Notice(`Selection sent to canvas: ${this.selectedCanvas.name}`);
         } catch (error) {
             console.error("Error sending selection to canvas:", error);
-            new Notice(
-                `Failed to send selection to canvas: ${
-                    error.message || "Unknown error"
-                }`,
-            );
+            new Notice("Error sending selection to canvas");
+            
+            // Restore the cursor position even if there was an error
+            editor.setCursor(originalCursor);
         }
     }
 
@@ -811,16 +756,78 @@ export default class Main extends Plugin {
         content: string,
     ): Promise<string> {
         try {
+            // Save the original cursor position
+            const originalCursor = editor.getCursor();
+            
             // Read the file content
             const fileContent = await this.app.vault.read(file);
-
+            const lineContent = editor.getLine(originalCursor.line);
+            
             // Find the position of the content in the file
-            const position = BlockReferenceUtils.findTextPosition(
+            let position = BlockReferenceUtils.findTextPosition(
                 fileContent,
                 content,
             );
+            
+            // If position not found but we're working with the current line
+            if (!position && content === lineContent) {
+                console.log("Using cursor position as fallback for content match");
+                position = {
+                    line: originalCursor.line,
+                    offset: 0,
+                };
+            }
+            
+            if (!position) {
+                // Try one more approach - look for content after basic normalization
+                const lines = fileContent.split("\n");
+                const trimmedContent = content.trim();
+                
+                for (let i = 0; i < lines.length; i++) {
+                    if (lines[i].trim() === trimmedContent) {
+                        position = {
+                            line: i,
+                            offset: lines[i].indexOf(trimmedContent.charAt(0)),
+                        };
+                        console.log("Found content using trim normalization");
+                        break;
+                    }
+                }
+            }
+            
             if (!position) {
                 console.error("Could not find content in file");
+                // Generate a block ID anyway to ensure embedding works
+                const blockId = BlockReferenceUtils.generateBlockId(this.settings);
+                console.log("Generated fallback block ID:", blockId);
+                
+                // Try to add it to the current line but preserve cursor position
+                const line = originalCursor.line;
+                const currentContent = editor.getLine(line);
+                
+                if (currentContent && currentContent.trim() !== "") {
+                    // Check if we need to append the task text configuration
+                    let modifiedContent = currentContent;
+                    const isOpenTask = currentContent.trim().startsWith("- [ ]");
+                    
+                    if (isOpenTask && this.settings.appendTextToOpenTasks && 
+                        !currentContent.includes(this.settings.openTaskAppendText)) {
+                        // Append the custom text for tasks if enabled and not already present
+                        modifiedContent = currentContent.trimEnd() + " " + this.settings.openTaskAppendText;
+                    }
+                    
+                    // Update the file directly instead of using editor.setLine to preserve cursor
+                    const lines = fileContent.split("\n");
+                    lines[line] = modifiedContent + ` ^${blockId}`;
+                    await this.app.vault.modify(file, lines.join("\n"));
+                    
+                    // Restore cursor position
+                    editor.setCursor(originalCursor);
+                    
+                    console.log("Added block ID to current line as fallback");
+                    return blockId;
+                }
+                
                 return "";
             }
 
@@ -836,12 +843,27 @@ export default class Main extends Plugin {
 
             // Generate a new block ID
             const blockId = BlockReferenceUtils.generateBlockId(this.settings);
+            
+            // Check if we need to append the task text configuration
+            let modifiedLine = line;
+            const isOpenTask = line.trim().startsWith("- [ ]");
+            
+            if (isOpenTask && this.settings.appendTextToOpenTasks && 
+                !line.includes(this.settings.openTaskAppendText)) {
+                // Append the custom text for tasks if enabled and not already present
+                modifiedLine = line.trimEnd() + " " + this.settings.openTaskAppendText;
+            }
 
             // Add the block ID to the line
-            lines[position.line] = line + ` ^${blockId}`;
+            lines[position.line] = modifiedLine + ` ^${blockId}`;
 
             // Update the file
             await this.app.vault.modify(file, lines.join("\n"));
+            
+            // Restore cursor position if needed
+            if (position.line === originalCursor.line) {
+                editor.setCursor(originalCursor);
+            }
 
             return blockId;
         } catch (error) {
