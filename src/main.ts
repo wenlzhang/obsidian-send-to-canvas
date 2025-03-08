@@ -363,6 +363,7 @@ export default class Main extends Plugin {
                 blockId = await this.createBlockReference(
                     currentFile,
                     currentContent,
+                    this.settings,
                 );
             }
 
@@ -644,11 +645,13 @@ export default class Main extends Plugin {
     async createBlockReference(
         file: TFile,
         selectedText: string,
+        settings: SendToCanvasSettings,
     ): Promise<string> {
         return BlockReferenceUtils.createBlockReference(
             this.app.vault,
             file,
             selectedText,
+            settings,
         );
     }
 

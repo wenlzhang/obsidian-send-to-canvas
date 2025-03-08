@@ -129,5 +129,76 @@ export class SettingsTab extends PluginSettingTab {
 
         // Initialize the slider name
         updateSliderName(this.plugin.settings.startupLoadDelay);
+
+        // Add a heading for the block ID format section
+        new Setting(containerEl).setName("Block ID format").setHeading();
+
+        // Add explanation about block ID format
+        const blockIdInfo = containerEl.createDiv("block-id-format-info");
+        blockIdInfo.createEl("p", {
+            text: "You can customize the format of block IDs created when sending content to canvas. By default, random alphanumeric IDs are used.",
+        });
+
+        // Add toggle for using custom block ID format
+        new Setting(containerEl)
+            .setName("Use date-based block IDs")
+            .setDesc(
+                "Use a date-based format for block IDs instead of random characters",
+            )
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(this.plugin.settings.useCustomBlockIdFormat)
+                    .onChange(async (value) => {
+                        this.plugin.settings.useCustomBlockIdFormat = value;
+                        await this.plugin.saveSettings();
+                        this.display(); // Refresh the display to show/hide the format setting
+                    }),
+            );
+
+        // Only show the format setting if custom format is enabled
+        if (this.plugin.settings.useCustomBlockIdFormat) {
+            new Setting(containerEl)
+                .setName("Block ID format")
+                .setDesc(
+                    "MomentJS format for generating block IDs (e.g., YYYYMMDDHHmmss)",
+                )
+                .addText((text) =>
+                    text
+                        .setPlaceholder("YYYYMMDDHHmmss")
+                        .setValue(this.plugin.settings.blockIdDateFormat)
+                        .onChange(async (value) => {
+                            this.plugin.settings.blockIdDateFormat = value;
+                            await this.plugin.saveSettings();
+                        }),
+                );
+
+            // Add examples of moment.js formats
+            const formatExamples = containerEl.createDiv(
+                "block-id-format-examples",
+            );
+            formatExamples.createEl("p", {
+                text: "Examples:",
+                cls: "block-id-format-examples-title",
+            });
+
+            const examplesList = formatExamples.createEl("ul");
+
+            const addExample = (format: string, description: string) => {
+                const item = examplesList.createEl("li");
+                item.createEl("code", { text: format });
+                item.createSpan({ text: ` - ${description}` });
+            };
+
+            addExample("YYYYMMDDHHmmss", "20250308120000 (basic timestamp)");
+            addExample(
+                "YYYY-MM-DDTHH-mm-ss",
+                "2025-03-08T12-00-00 (with date separators)",
+            );
+            addExample("YYMMDD-HHmm", "250308-1200 (shorter format)");
+            addExample(
+                "YYYYMMDDHHmmssSSS",
+                "20250308120000123 (with milliseconds)",
+            );
+        }
     }
 }

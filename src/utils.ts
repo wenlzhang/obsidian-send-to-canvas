@@ -1,4 +1,5 @@
-import { TFile, Vault, EditorPosition } from "obsidian";
+import { TFile, Vault, EditorPosition, moment } from "obsidian";
+import { SendToCanvasSettings } from "./settings";
 
 /**
  * Utility functions for working with block references and content
@@ -9,12 +10,14 @@ export class BlockReferenceUtils {
      * @param vault The Obsidian vault
      * @param file The file to create the block reference in
      * @param selectedText The selected text to create a block reference for
+     * @param settings Plugin settings
      * @returns The created block ID
      */
     static async createBlockReference(
         vault: Vault,
         file: TFile,
         selectedText: string,
+        settings: SendToCanvasSettings,
     ): Promise<string> {
         try {
             // Read the file content
@@ -38,7 +41,7 @@ export class BlockReferenceUtils {
             }
 
             // Generate a new block ID
-            const blockId = this.generateBlockId();
+            const blockId = this.generateBlockId(settings);
 
             // Add the block ID to the line
             lines[position.line] = line + ` ^${blockId}`;
@@ -95,12 +98,18 @@ export class BlockReferenceUtils {
     }
 
     /**
-     * Generates a unique block ID
-     * @returns A unique block ID
+     * Generates a block ID based on settings
+     * @param settings Plugin settings
+     * @returns A block ID string
      */
-    static generateBlockId(): string {
-        // Generate a random 6-character alphanumeric ID
-        return Math.random().toString(36).substring(2, 8);
+    static generateBlockId(settings: SendToCanvasSettings): string {
+        if (settings.useCustomBlockIdFormat) {
+            // Use moment.js to generate a date-based ID
+            return moment().format(settings.blockIdDateFormat);
+        } else {
+            // Generate a random 6-character alphanumeric ID (original method)
+            return Math.random().toString(36).substring(2, 8);
+        }
     }
 
     /**

@@ -35,6 +35,20 @@
     font-style: italic;
 }
 
+.status-bar-item.plugin-send-to-canvas {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.status-bar-item.plugin-send-to-canvas.has-canvas-selected {
+    color: var(--text-accent);
+}
+
+.status-bar-item.plugin-send-to-canvas.no-canvas-selected {
+    color: var(--text-muted);
+}
+
 .send-to-canvas-status {
     display: flex;
     align-items: center;
@@ -63,7 +77,7 @@
 }
 
 .canvas-delay-presets {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
@@ -71,6 +85,7 @@
 }
 
 .canvas-delay-presets button {
+    margin-right: 8px;
     padding: 4px 8px;
     border-radius: 4px;
     font-size: 12px;
@@ -89,4 +104,37 @@
     color: var(--text-muted);
     font-size: 12px;
     margin-right: 4px;
+}
+
+/* Block ID format examples */
+.block-id-format-info {
+    margin-bottom: 12px;
+}
+
+.block-id-format-examples {
+    margin-top: 8px;
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background-color: var(--background-secondary);
+}
+
+.block-id-format-examples-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.block-id-format-examples ul {
+    margin: 0;
+    padding-left: 16px;
+}
+
+.block-id-format-examples li {
+    margin-bottom: 4px;
+}
+
+.block-id-format-examples code {
+    background-color: var(--background-primary);
+    padding: 2px 4px;
+    border-radius: 3px;
 }
