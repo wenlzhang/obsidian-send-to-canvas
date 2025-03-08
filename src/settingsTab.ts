@@ -89,34 +89,6 @@ export class SettingsTab extends PluginSettingTab {
                             await this.plugin.saveSettings();
                         }),
                 );
-
-            // Add examples of moment.js formats
-            const formatExamples = containerEl.createDiv(
-                "block-id-format-examples",
-            );
-            formatExamples.createEl("p", {
-                text: "Examples:",
-                cls: "block-id-format-examples-title",
-            });
-
-            const examplesList = formatExamples.createEl("ul");
-
-            const addExample = (format: string, description: string) => {
-                const item = examplesList.createEl("li");
-                item.createEl("code", { text: format });
-                item.createSpan({ text: ` - ${description}` });
-            };
-
-            addExample("YYYYMMDDHHmmss", "20250308120000 (basic timestamp)");
-            addExample(
-                "YYYY-MM-DDTHH-mm-ss",
-                "2025-03-08T12-00-00 (with date separators)",
-            );
-            addExample("YYMMDD-HHmm", "250308-1200 (shorter format)");
-            addExample(
-                "YYYYMMDDHHmmssSSS",
-                "20250308120000123 (with milliseconds)",
-            );
         }
 
         // Add a heading for the timestamp append section
@@ -160,43 +132,6 @@ export class SettingsTab extends PluginSettingTab {
                             await this.plugin.saveSettings();
                         }),
                 );
-
-            // Add examples of timestamp formats
-            const timestampExamples = containerEl.createDiv(
-                "timestamp-format-examples",
-            );
-            timestampExamples.createEl("p", {
-                text: "Examples:",
-                cls: "timestamp-format-examples-title",
-            });
-
-            const timestampExamplesList = timestampExamples.createEl("ul");
-
-            const addTimestampExample = (
-                format: string,
-                description: string,
-            ) => {
-                const item = timestampExamplesList.createEl("li");
-                item.createEl("code", { text: format });
-                item.createSpan({ text: ` - ${description}` });
-            };
-
-            addTimestampExample(
-                "[📝 ]YYYY-MM-DDTHH:mm",
-                "📝 2025-03-08T08:07 (with emoji)",
-            );
-            addTimestampExample(
-                "[(]YYYY-MM-DD[)]",
-                "(2025-03-08) (with parentheses)",
-            );
-            addTimestampExample(
-                "[Added: ]HH:mm",
-                "Added: 08:07 (with text prefix)",
-            );
-            addTimestampExample(
-                "[on ]dddd[, ]MMMM Do",
-                "on Saturday, March 8th (with day name)",
-            );
         }
 
         // Open task customization section
@@ -234,22 +169,6 @@ export class SettingsTab extends PluginSettingTab {
                             await this.plugin.saveSettings();
                         }),
                 );
-
-            // Add examples of task customization
-            const taskExamplesDiv = containerEl.createDiv({
-                cls: "setting-item-description timestamp-format-examples",
-            });
-            taskExamplesDiv.createSpan({
-                text: "Example:",
-            });
-            taskExamplesDiv.createEl("br");
-            taskExamplesDiv.createSpan({
-                text: "Original: - [ ] Task description",
-            });
-            taskExamplesDiv.createEl("br");
-            taskExamplesDiv.createSpan({
-                text: "Modified: - [ ] Task description [l:: #Canvas ]",
-            });
         }
 
         // Node size settings section
