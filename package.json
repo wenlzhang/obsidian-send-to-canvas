@@ -1,6 +1,6 @@
 {
     "name": "send-to-canvas",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "description": "Send notes or text blocks to a Canvas file in different formats.",
     "main": "main.js",
     "scripts": {

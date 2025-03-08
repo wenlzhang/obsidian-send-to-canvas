@@ -1,13 +1,13 @@
 {
 	"id": "send-to-canvas",
 	"name": "Send to Canvas",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"minAppVersion": "1.0.0",
 	"author": "wenlzhang",
 	"authorUrl": "https://github.com/wenlzhang",
 	"fundingUrl": {
-        "Buy Me a Coffee": "https://ko-fi.com/f84556"
-    },
+		"Buy Me a Coffee": "https://ko-fi.com/f84556"
+	},
 	"isDesktopOnly": false,
 	"description": "Send notes or text blocks to a Canvas file in different formats."
 }
