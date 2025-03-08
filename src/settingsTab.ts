@@ -48,14 +48,13 @@ export class SettingsTab extends PluginSettingTab {
                     }),
             );
 
-        // Add a heading for the block ID format section
-        new Setting(containerEl).setName("Block ID format").setHeading();
-
-        // Add explanation about block ID format
-        const blockIdInfo = containerEl.createDiv("block-id-format-info");
-        blockIdInfo.createEl("p", {
-            text: "You can customize the format of block IDs created when sending content to canvas. By default, random alphanumeric IDs are used.",
-        });
+        // Add a heading for the block ID format section with description
+        new Setting(containerEl)
+            .setName("Block ID format")
+            .setDesc(
+                "You can customize the format of block IDs created when sending content to canvas. By default, random alphanumeric IDs are used.",
+            )
+            .setHeading();
 
         // Add toggle for using custom block ID format
         new Setting(containerEl)
@@ -91,14 +90,13 @@ export class SettingsTab extends PluginSettingTab {
                 );
         }
 
-        // Add a heading for the timestamp append section
-        new Setting(containerEl).setName("Link timestamp").setHeading();
-
-        // Add explanation about timestamp append
-        const timestampInfo = containerEl.createDiv("timestamp-append-info");
-        timestampInfo.createEl("p", {
-            text: "You can append a timestamp after links and embeds sent to canvas. This helps track when content was added to the canvas.",
-        });
+        // Add a heading for the timestamp append section with description
+        new Setting(containerEl)
+            .setName("Link timestamp")
+            .setDesc(
+                "You can append a timestamp after links and embeds sent to canvas. This helps track when content was added to the canvas.",
+            )
+            .setHeading();
 
         // Add toggle for appending timestamp to links
         new Setting(containerEl)
@@ -177,7 +175,7 @@ export class SettingsTab extends PluginSettingTab {
         // Link and block link node size settings
         new Setting(containerEl)
             .setName("Link nodes (note links and block links)")
-            .setHeading();
+            .setDesc("Configure size settings for note links and block links");
 
         new Setting(containerEl)
             .setName("Link node width")
@@ -212,7 +210,7 @@ export class SettingsTab extends PluginSettingTab {
         // Content node size settings (block embeds and plain text)
         new Setting(containerEl)
             .setName("Content nodes (block embeds and plain text)")
-            .setHeading();
+            .setDesc("Configure size settings for block embeds and plain text");
 
         new Setting(containerEl)
             .setName("Content node width")
@@ -247,7 +245,7 @@ export class SettingsTab extends PluginSettingTab {
         // File node size settings (note content)
         new Setting(containerEl)
             .setName("File nodes (note content)")
-            .setHeading();
+            .setDesc("Configure size settings for note content");
 
         new Setting(containerEl)
             .setName("File node width")
@@ -279,14 +277,13 @@ export class SettingsTab extends PluginSettingTab {
                     }),
             );
 
-        // Add a heading for the startup delay section
-        new Setting(containerEl).setName("Canvas file loading").setHeading();
-
-        // Add explanation about the startup delay
-        const delayInfo = containerEl.createDiv("canvas-delay-info");
-        delayInfo.createEl("p", {
-            text: "The plugin needs time to find canvas files after Obsidian starts. If you have a large vault or if the plugin has trouble finding your canvas files after restart, try increasing this delay.",
-        });
+        // Add a heading for the startup delay section with description
+        new Setting(containerEl)
+            .setName("Canvas file loading")
+            .setDesc(
+                "The plugin needs time to find canvas files after Obsidian starts. If you have a large vault or if the plugin has trouble finding your canvas files after restart, try increasing this delay.",
+            )
+            .setHeading();
 
         // Create a container for the preset buttons
         const presetContainer = containerEl.createDiv("canvas-delay-presets");
