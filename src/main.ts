@@ -530,6 +530,7 @@ export default class Main extends Plugin {
     showSendMenu(editor: Editor, event: MouseEvent | KeyboardEvent) {
         const menu = new Menu();
 
+        // Block-related commands (for selected text)
         menu.addItem((item) => {
             item.setTitle("Send as plain text").onClick(() => {
                 this.sendSelectionToCanvas(editor, "plain");
@@ -548,18 +549,55 @@ export default class Main extends Plugin {
             });
         });
 
-        // Try using the provided mouse event first
+        // Add a separator
+        menu.addSeparator();
+
+        // Note-related commands
+        menu.addItem((item) => {
+            item.setTitle("Send note link").onClick(() => {
+                this.sendNoteAsLinkToCanvas();
+            });
+        });
+
+        menu.addItem((item) => {
+            item.setTitle("Send note embed").onClick(() => {
+                this.sendCurrentNoteToCanvas();
+            });
+        });
+
+        // Position the menu near the cursor or click location
         if (event) {
-            // Check if it's a MouseEvent by looking for mouse-specific properties
+            // If it's a mouse event, show at that position
             if ("clientX" in event && "clientY" in event) {
                 menu.showAtMouseEvent(event as MouseEvent);
             } else {
-                // Fallback for keyboard events or other event types
-                menu.showAtPosition({ x: 100, y: 100 });
+                // For keyboard events, use a reasonable default position
+                // Since we can't directly get cursor coordinates from the Editor API
+                const view =
+                    this.app.workspace.getActiveViewOfType(MarkdownView);
+                if (view && view.containerEl) {
+                    // Position near the editor container
+                    const rect = view.containerEl.getBoundingClientRect();
+                    menu.showAtPosition({
+                        x: rect.left + 100,
+                        y: rect.top + 100,
+                    });
+                } else {
+                    // Fallback
+                    menu.showAtPosition({ x: 100, y: 100 });
+                }
             }
         } else {
-            // Fallback to showing at a calculated position
-            menu.showAtPosition({ x: 100, y: 100 });
+            // If no event is provided, use a reasonable default position
+            const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+            if (view && view.containerEl) {
+                // Position near the editor container
+                const rect = view.containerEl.getBoundingClientRect();
+                menu.showAtPosition({ x: rect.left + 100, y: rect.top + 100 });
+            } else {
+                // Fallback
+                menu.showAtPosition({ x: 100, y: 100 });
+            }
         }
     }
 
