@@ -7,27 +7,27 @@ An [Obsidian](https://obsidian.md/) plugin that allows you to send tasks, blocks
 ## Features
 
 - **Multiple content formats**:
-  - Send text as plain text
-  - Send text as block links
-  - Send text as block embeds
-  - Send entire notes as note links
-  - Send entire notes as note embeds
+	- Send text as plain text
+	- Send text as block links
+	- Send text as block embeds
+	- Send entire notes as note links
+	- Send entire notes as note embeds
 - **Open task customization**:
-  - Append custom text to open tasks (lines starting with "- [ ]")
-  - Preserve original task formatting
+	- Append custom text to open tasks (lines starting with "- [ ]")
+	- Preserve original task formatting
 - **Block ID customization**:
-  - Use date-based or random block IDs
-  - Customize block ID format using MomentJS tokens
+	- Use date-based or random block IDs
+	- Customize block ID format using MomentJS tokens
 - **Timestamp tracking**:
-  - Append timestamps to links and embeds
-  - Customize timestamp format
+	- Append timestamps to links and embeds
+	- Customize timestamp format
 - **Canvas node customization**:
-  - Set custom sizes for different node types (links, content, notes)
-  - Consistent sizing between block embeds and text content
+	- Set custom sizes for different node types (links, content, notes)
+	- Consistent sizing between block embeds and text content
 - **User experience**:
-  - Remember last selected canvas file
-  - Status bar indicator selecting and showing target canvas
-  - Customizable startup delay for large vaults
+	- Remember last selected canvas file
+	- Status bar indicator selecting and showing target canvas
+	- Customizable startup delay for large vaults
 - **Smart text selection**: Automatically uses the entire line when no text is selected
 
 ## Commands
@@ -53,11 +53,11 @@ An [Obsidian](https://obsidian.md/) plugin that allows you to send tasks, blocks
 1. Select text in a note or place your cursor on a line (no selection needed)
 2. Open the command palette (Ctrl/Cmd+P)
 3. Choose one of the "Send to Canvas" commands:
-   - "Send block text" for plain text
-   - "Send block link" for a link to the block
-   - "Send block embed" to embed the block
-   - "Send note link" for a link to the current note
-   - "Send note embed" to embed the current note
+	- "Send block text" for plain text
+	- "Send block link" for a link to the block
+	- "Send block embed" to embed the block
+	- "Send note link" for a link to the current note
+	- "Send note embed" to embed the current note
 4. The content will be added to your selected canvas file
 
 ### Context Menu
@@ -67,11 +67,11 @@ Right-click in the editor to access the "Send to canvas" context menu option. Th
 1. Right-click anywhere in your note
 2. Select "Send to canvas" from the context menu
 3. Choose from the available options that appear near your cursor:
-   - Send as plain text
-   - Send as block link
-   - Send as block embed
-   - Send note link
-   - Send note embed
+	- Send as plain text
+	- Send as block link
+	- Send as block embed
+	- Send note link
+	- Send note embed
 
 If no text is selected when you use the context menu, the plugin will automatically use the entire line where your cursor is positioned.
 
@@ -96,6 +96,7 @@ You can customize the format of block IDs using MomentJS formatting tokens. Here
 You can append custom text to open tasks (lines starting with "- [ ]") when sending them to Canvas. This is useful for adding tags, metadata, or other information to tasks.
 
 Example:
+
 - Original: `- [ ] Task description`
 - Modified: `- [ ] Task description [l:: #Canvas ]`
 
@@ -111,6 +112,7 @@ When appending timestamps to links, you can customize the format using MomentJS 
 ### Canvas Node Sizes
 
 You can customize the dimensions of nodes created in canvas files:
+
 - **Link nodes**: For note links and block links (default: 400×100)
 - **Content nodes**: For block embeds and plain text (default: 400×200)
 - **File nodes**: For note content (default: 400×400)
