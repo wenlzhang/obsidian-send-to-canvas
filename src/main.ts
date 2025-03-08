@@ -103,13 +103,13 @@ export default class Main extends Plugin {
         });
 
         // Debug command - only visible in developer mode
-        if (process.env.NODE_ENV !== "production") {
-            this.addCommand({
-                id: "debug-canvas-finding",
-                name: "Debug: Test canvas file finding",
-                callback: () => this.debugCanvasFinding(),
-            });
-        }
+        // if (process.env.NODE_ENV !== "production") {
+        //     this.addCommand({
+        //         id: "debug-canvas-finding",
+        //         name: "Debug: Test canvas file finding",
+        //         callback: () => this.debugCanvasFinding(),
+        //     });
+        // }
 
         // Add command to send selection to canvas as plain text
         this.addCommand({
