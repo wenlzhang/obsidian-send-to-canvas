@@ -198,7 +198,7 @@ export class SettingsTab extends PluginSettingTab {
                 "on Saturday, March 8th (with day name)",
             );
         }
-        
+
         // Open task customization section
         new Setting(containerEl)
             .setName("Open task customization")
@@ -243,7 +243,7 @@ export class SettingsTab extends PluginSettingTab {
         });
         taskExamplesDiv.createEl("br");
         taskExamplesDiv.createSpan({
-            text: "Modified: - [ ] Task description [l:: #DVTLCanvas ]",
+            text: "Modified: - [ ] Task description [l:: #Canvas ]",
         });
 
         // Node size settings section

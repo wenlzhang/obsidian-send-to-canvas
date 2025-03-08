@@ -357,29 +357,89 @@ export default class Main extends Plugin {
         }
 
         // Check if the content is a task and append custom text if enabled
+        // Only modify the original text for link and embed formats
         let contentToSend = selectedText;
         const isOpenTask = selectedText.trim().startsWith("- [ ]");
 
-        if (isOpenTask && this.settings.appendTextToOpenTasks) {
-            // Append the custom text to the task before creating the block ID
-            contentToSend =
-                selectedText.trimEnd() + " " + this.settings.openTaskAppendText;
-        }
+        // Generate a block ID for link and embed formats
+        let blockId = "";
 
         try {
-            // Generate a block ID for link and embed formats
-            let blockId = "";
             if (format === "link" || format === "embed") {
-                // Add a block ID to the current selection
-                blockId = await this.addBlockIdToSelection(
-                    editor,
-                    currentFile,
-                    contentToSend,
-                );
+                // For link and embed formats, modify the original text if it's an open task
+                if (isOpenTask && this.settings.appendTextToOpenTasks) {
+                    // Append the custom text to the task before creating the block ID
+                    // First check if the text already has a block ID
+                    const existingIdMatch =
+                        selectedText.match(/\^([a-zA-Z0-9-]+)$/);
+
+                    if (existingIdMatch) {
+                        // If there's already a block ID, insert the custom text before it
+                        const blockIdPart = existingIdMatch[0];
+                        const textWithoutBlockId = selectedText
+                            .substring(
+                                0,
+                                selectedText.length - blockIdPart.length,
+                            )
+                            .trimEnd();
+
+                        // Update the text in the editor
+                        const updatedText =
+                            textWithoutBlockId +
+                            " " +
+                            this.settings.openTaskAppendText +
+                            " " +
+                            blockIdPart;
+
+                        // Find the position of the selected text in the editor
+                        const fileContent =
+                            await this.app.vault.read(currentFile);
+                        const position = BlockReferenceUtils.findTextPosition(
+                            fileContent,
+                            selectedText,
+                        );
+
+                        if (position) {
+                            // Update the file with the modified text
+                            const lines = fileContent.split("\n");
+                            lines[position.line] = updatedText;
+                            await this.app.vault.modify(
+                                currentFile,
+                                lines.join("\n"),
+                            );
+
+                            // Extract the block ID from the match
+                            blockId = existingIdMatch[1];
+
+                            // Update the selected text for the canvas
+                            selectedText = updatedText;
+                        }
+                    } else {
+                        // No existing block ID, append the custom text and then add a block ID
+                        selectedText =
+                            selectedText.trimEnd() +
+                            " " +
+                            this.settings.openTaskAppendText;
+
+                        // Add a block ID to the current selection
+                        blockId = await this.addBlockIdToSelection(
+                            editor,
+                            currentFile,
+                            selectedText,
+                        );
+                    }
+                } else {
+                    // Not an open task or custom text not enabled, just add a block ID
+                    blockId = await this.addBlockIdToSelection(
+                        editor,
+                        currentFile,
+                        selectedText,
+                    );
+                }
             }
 
             // Add the content to the canvas
-            await this.addToCanvas(format, contentToSend, currentFile, blockId);
+            await this.addToCanvas(format, selectedText, currentFile, blockId);
 
             new Notice(`Selection sent to canvas: ${this.selectedCanvas.name}`);
         } catch (error) {
