@@ -32,6 +32,14 @@ An [Obsidian](https://obsidian.md/) plugin that allows you to send tasks, blocks
 	- Customizable startup delay for large vaults
 - **Smart text selection**: Automatically uses the entire line when no text is selected
 
+## Videos and Articles
+
+### Videos
+
+<a href="https://youtu.be/09PXwqUVm_U?si=q_vvK1bsfpCviv70" target="_blank">
+  <img src="./docs/attachment/thumbnail-demo.png" width="800" alt="Streamline Your Canvas Experience with Send to Canvas for Obsidian" />
+</a>
+
 ## Commands
 
 - **Send block text**: Send the selected text (or current line) to canvas as plain text
