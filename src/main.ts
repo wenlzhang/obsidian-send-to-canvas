@@ -271,6 +271,7 @@ export default class Main extends Plugin {
     }
 
     async sendSelectionToCanvas(editor: Editor, format: SendFormat) {
+        // Check if a canvas file is selected
         if (!this.selectedCanvas) {
             new Notice("Please select a canvas file first");
             this.selectCanvasFile();
@@ -291,28 +292,27 @@ export default class Main extends Plugin {
             return;
         }
 
-        // Save the original cursor position to restore it later
+        // Save original cursor position
         const originalCursor = editor.getCursor();
 
-        // Get the selection
-        let selectedText = editor.getSelection();
+        // Get the selection or current line
+        let textToSend = editor.getSelection();
 
-        // If no text is selected, use the current line without visually selecting it
-        if (!selectedText || selectedText.trim() === "") {
+        // If no text is selected, use the current line
+        if (!textToSend || textToSend.trim() === "") {
             const line = editor.getLine(originalCursor.line);
 
             if (line && line.trim() !== "") {
                 // Use the current line but don't visually select it
-                selectedText = line;
+                textToSend = line;
             } else {
                 new Notice("Current line is empty");
                 return;
             }
         }
 
-        // Check if the content is a task
-        const isOpenTask = selectedText.trim().startsWith("- [ ]");
-        let contentToSend = selectedText;
+        // Apply the open task text append if needed
+        let contentToSend = this.appendTextToOpenTask(textToSend);
 
         // Generate a block ID for link and embed formats
         let blockId = "";
@@ -323,11 +323,10 @@ export default class Main extends Plugin {
                 blockId = await this.addBlockIdToSelection(
                     editor,
                     currentFile,
-                    selectedText,
+                    textToSend, // Use the original text to find the right position
                 );
 
-                // If a block ID was successfully added, update the contentToSend
-                // to include any changes made (like appended task text)
+                // If a block ID was successfully added, get the updated line content from the file
                 if (blockId) {
                     // Get the updated content from the file
                     const fileContent = await this.app.vault.read(currentFile);
@@ -336,11 +335,10 @@ export default class Main extends Plugin {
                     // Find the line containing the block ID
                     for (let i = 0; i < lines.length; i++) {
                         if (lines[i].includes(`^${blockId}`)) {
-                            // Update contentToSend to match what's in the file
-                            contentToSend = lines[i].replace(
-                                ` ^${blockId}`,
-                                "",
-                            );
+                            // Extract the content without the block ID
+                            contentToSend = lines[i].replace(` ^${blockId}`, "");
+                            console.log("Content from file with block ID:", lines[i]);
+                            console.log("Content to send to canvas:", contentToSend);
                             break;
                         }
                     }
@@ -355,6 +353,7 @@ export default class Main extends Plugin {
 
             new Notice(`Selection sent to canvas: ${this.selectedCanvas.name}`);
         } catch (error) {
+            console.error("Error sending selection to canvas:", error);
             new Notice("Error sending selection to canvas");
 
             // Restore the cursor position even if there was an error
@@ -702,29 +701,13 @@ export default class Main extends Plugin {
 
                 if (currentContent && currentContent.trim() !== "") {
                     // Check if we need to append the task text configuration
-                    let modifiedContent = currentContent;
-                    const isOpenTask = currentContent
-                        .trim()
-                        .startsWith("- [ ]");
-
-                    if (
-                        isOpenTask &&
-                        this.settings.appendTextToOpenTasks &&
-                        !currentContent.includes(
-                            this.settings.openTaskAppendText,
-                        )
-                    ) {
-                        // Append the custom text for tasks if enabled and not already present
-                        modifiedContent =
-                            currentContent.trimEnd() +
-                            " " +
-                            this.settings.openTaskAppendText;
-                    }
+                    let modifiedContent = this.appendTextToOpenTask(currentContent);
 
                     // Update the file directly instead of using editor.setLine to preserve cursor
                     const lines = fileContent.split("\n");
                     lines[line] = modifiedContent + ` ^${blockId}`;
                     await this.app.vault.modify(file, lines.join("\n"));
+                    console.log("Modified the line and added block ID:", lines[line]);
 
                     // Restore cursor position
                     editor.setCursor(originalCursor);
@@ -749,21 +732,13 @@ export default class Main extends Plugin {
             const blockId = BlockReferenceUtils.generateBlockId(this.settings);
 
             // Check if we need to append the task text configuration
-            let modifiedLine = line;
-            const isOpenTask = line.trim().startsWith("- [ ]");
-
-            if (
-                isOpenTask &&
-                this.settings.appendTextToOpenTasks &&
-                !line.includes(this.settings.openTaskAppendText)
-            ) {
-                // Append the custom text for tasks if enabled and not already present
-                modifiedLine =
-                    line.trimEnd() + " " + this.settings.openTaskAppendText;
-            }
+            let modifiedLine = this.appendTextToOpenTask(line);
+            console.log("Original line:", line);
+            console.log("Modified line after task text append:", modifiedLine);
 
             // Add the block ID to the line
             lines[position.line] = modifiedLine + ` ^${blockId}`;
+            console.log("Final line with block ID:", lines[position.line]);
 
             // Update the file
             await this.app.vault.modify(file, lines.join("\n"));
@@ -775,6 +750,7 @@ export default class Main extends Plugin {
 
             return blockId;
         } catch (error) {
+            console.error("Error adding block ID to selection:", error);
             return "";
         }
     }
@@ -854,10 +830,46 @@ export default class Main extends Plugin {
             } else if (format === "embed") {
                 // Use the file basename instead of the full path
                 linkText = `![[${sourceFile.basename}#^${blockId}]]`;
+                
+                // For block embeds of open tasks, check if we need to modify the source file
+                // This ensures the embedded content will include the appended text
+                if (content.trim().startsWith("- [ ]") && 
+                    this.settings.appendTextToOpenTasks) {
+                    
+                    try {
+                        // Read the file content to check for the block ID
+                        const fileContent = await this.app.vault.read(sourceFile);
+                        const lines = fileContent.split("\n");
+                        
+                        // Find the line with this block ID
+                        for (let i = 0; i < lines.length; i++) {
+                            if (lines[i].includes(`^${blockId}`)) {
+                                const lineWithoutBlockId = lines[i].replace(` ^${blockId}`, "");
+                                
+                                // Check if we need to append the custom text
+                                if (!lineWithoutBlockId.includes(this.settings.openTaskAppendText)) {
+                                    // Modify the line to include the appended text
+                                    const modifiedLine = lineWithoutBlockId.trimEnd() + 
+                                        " " + this.settings.openTaskAppendText + 
+                                        ` ^${blockId}`;
+                                    
+                                    lines[i] = modifiedLine;
+                                    
+                                    // Update the file
+                                    await this.app.vault.modify(sourceFile, lines.join("\n"));
+                                    console.log("Modified source file line for block embed:", modifiedLine);
+                                }
+                                break;
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Error updating source file for block embed:", error);
+                    }
+                }
             }
 
             textContent = linkText;
-
+            
             // Append timestamp if enabled
             if (this.settings.appendTimestampToLinks) {
                 const timestamp = moment().format(
@@ -877,7 +889,10 @@ export default class Main extends Plugin {
                 nodeHeight = this.settings.contentNodeHeight;
             }
         } else {
-            // Plain text - use content node dimensions
+            // Plain text - ensure task text is appended if needed
+            textContent = this.appendTextToOpenTask(content);
+            
+            // Use content node dimensions
             nodeWidth = this.settings.contentNodeWidth;
             nodeHeight = this.settings.contentNodeHeight;
         }
@@ -1115,6 +1130,20 @@ export default class Main extends Plugin {
         new Notice(
             `Found ${allCanvasFiles.length} canvas files in vault. Check console for details.`,
         );
+    }
+
+    // Helper method to append text to open tasks if settings enabled
+    appendTextToOpenTask(text: string): string {
+        if (!text || !text.trim().startsWith("- [ ]") || !this.settings.appendTextToOpenTasks) {
+            return text;
+        }
+        
+        // Only append if the text doesn't already contain the append text
+        if (!text.includes(this.settings.openTaskAppendText)) {
+            return text.trimEnd() + " " + this.settings.openTaskAppendText;
+        }
+        
+        return text;
     }
 
     createTextNode(text: string): CanvasTextNodeData {
