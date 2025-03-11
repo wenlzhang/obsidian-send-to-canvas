@@ -311,8 +311,9 @@ export default class Main extends Plugin {
             }
         }
 
-        // Apply the open task text append if needed
-        let contentToSend = this.appendTextToOpenTask(textToSend);
+        // We don't want to modify the content for the canvas directly
+        // Only when creating a block ID for source file
+        let contentToSend = textToSend;
 
         // Generate a block ID for link and embed formats
         let blockId = "";
@@ -701,7 +702,7 @@ export default class Main extends Plugin {
 
                 if (currentContent && currentContent.trim() !== "") {
                     // Check if we need to append the task text configuration
-                    let modifiedContent = this.appendTextToOpenTask(currentContent);
+                    let modifiedContent = this.appendTextToOpenTask(currentContent, true);
 
                     // Update the file directly instead of using editor.setLine to preserve cursor
                     const lines = fileContent.split("\n");
@@ -732,7 +733,7 @@ export default class Main extends Plugin {
             const blockId = BlockReferenceUtils.generateBlockId(this.settings);
 
             // Check if we need to append the task text configuration
-            let modifiedLine = this.appendTextToOpenTask(line);
+            let modifiedLine = this.appendTextToOpenTask(line, true);
             console.log("Original line:", line);
             console.log("Modified line after task text append:", modifiedLine);
 
@@ -889,8 +890,8 @@ export default class Main extends Plugin {
                 nodeHeight = this.settings.contentNodeHeight;
             }
         } else {
-            // Plain text - ensure task text is appended if needed
-            textContent = this.appendTextToOpenTask(content);
+            // Plain text - use content as is without appending text to open tasks
+            // Don't modify the content for the canvas, only for source files
             
             // Use content node dimensions
             nodeWidth = this.settings.contentNodeWidth;
@@ -1133,14 +1134,19 @@ export default class Main extends Plugin {
     }
 
     // Helper method to append text to open tasks if settings enabled
-    appendTextToOpenTask(text: string): string {
+    // When modifySourceOnly is true, it only returns modified text for updating the source file
+    // When modifySourceOnly is false, it modifies text for both source file and canvas content
+    appendTextToOpenTask(text: string, modifySourceOnly: boolean = false): string {
         if (!text || !text.trim().startsWith("- [ ]") || !this.settings.appendTextToOpenTasks) {
             return text;
         }
         
-        // Only append if the text doesn't already contain the append text
-        if (!text.includes(this.settings.openTaskAppendText)) {
-            return text.trimEnd() + " " + this.settings.openTaskAppendText;
+        // If we're only supposed to modify the source file and this is for canvas content, return unmodified
+        if (modifySourceOnly) {
+            // Only append if the text doesn't already contain the append text
+            if (!text.includes(this.settings.openTaskAppendText)) {
+                return text.trimEnd() + " " + this.settings.openTaskAppendText;
+            }
         }
         
         return text;
