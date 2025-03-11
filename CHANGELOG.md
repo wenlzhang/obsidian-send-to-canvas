@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.2.0] - 2025-03-11
+
+### Changes
+
+- Fix eslint errors
+- Improve code format
+- Remove duplicated css file
+- Fix open task text appending issue
+- Fix open task text appending issue
+- Address comments
+- Add demo video
+- Improve code format
+
 ## [0.1.3] - 2025-03-08
 
 ### Changes
