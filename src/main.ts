@@ -14,6 +14,7 @@ import {
 import { SettingsTab } from "./settingsTab";
 import { SendToCanvasSettings, DEFAULT_SETTINGS, SendFormat } from "./settings";
 import { BlockReferenceUtils } from "./utils";
+import "./styles.css";
 
 // Canvas data structures based on Obsidian's Canvas API
 interface CanvasNodeData {
@@ -65,28 +66,21 @@ export default class Main extends Plugin {
 
         // Add status bar item for selected canvas
         this.statusBarItem = this.addStatusBarItem();
+        this.statusBarItem.addClass("send-to-canvas-status");
         this.updateStatusBar(); // Initialize the status bar immediately
 
         // Wait for Obsidian to fully load all files before trying to find the canvas file
         // Use a timeout with the user-configurable delay
-        console.log(
-            `Setting up delayed canvas file loading (${this.settings.startupLoadDelay} seconds delay)`,
-        );
         setTimeout(() => {
-            console.log("Now loading canvas files after delay");
             this.loadCanvasFile();
             this.updateStatusBar();
 
             // Check if we have canvas files in the vault
             const canvasFiles = this.getCanvasFiles();
             if (canvasFiles.length === 0) {
-                console.log(
-                    "No canvas files found in vault during startup. This might indicate an issue with file detection.",
-                );
+                // No canvas files found during startup
             } else {
-                console.log(
-                    `Found ${canvasFiles.length} canvas files during startup.`,
-                );
+                // Found canvas files during startup
             }
         }, this.settings.startupLoadDelay * 1000); // Convert seconds to milliseconds
 
@@ -101,15 +95,6 @@ export default class Main extends Plugin {
                 this.selectCanvasFile();
             },
         });
-
-        // Debug command - only visible in developer mode
-        // if (process.env.NODE_ENV !== "production") {
-        //     this.addCommand({
-        //         id: "debug-canvas-finding",
-        //         name: "Debug: Test canvas file finding",
-        //         callback: () => this.debugCanvasFinding(),
-        //     });
-        // }
 
         // Add command to send selection to canvas as plain text
         this.addCommand({
@@ -191,13 +176,6 @@ export default class Main extends Plugin {
             DEFAULT_SETTINGS,
             await this.loadData(),
         );
-
-        console.log(
-            "Settings loaded from data.json:",
-            JSON.stringify(this.settings),
-        );
-        console.log("Last canvas path:", this.settings.lastCanvasPath);
-
         // Don't try to load the canvas file here - we'll do it after the workspace is ready
     }
 
@@ -207,27 +185,15 @@ export default class Main extends Plugin {
             this.settings.lastCanvasPath &&
             this.settings.lastCanvasPath.length > 0
         ) {
-            console.log(
-                "Attempting to load canvas file from path or name:",
-                this.settings.lastCanvasPath,
-            );
-
             try {
                 // Try to find the canvas file
                 const file = this.findCanvasFile(this.settings.lastCanvasPath);
 
                 if (file) {
-                    console.log("Successfully loaded canvas file:", file.path);
                     this.selectedCanvas = file;
 
                     // Update the path to ensure it's the full path
                     if (this.settings.lastCanvasPath !== file.path) {
-                        console.log(
-                            "Updating saved path from",
-                            this.settings.lastCanvasPath,
-                            "to",
-                            file.path,
-                        );
                         this.settings.lastCanvasPath = file.path;
                         await this.saveSettings();
                     }
@@ -242,20 +208,14 @@ export default class Main extends Plugin {
                         }, 500);
                     }
                 } else {
-                    console.log(
-                        "No canvas file found with path or name:",
-                        this.settings.lastCanvasPath,
-                    );
                     // If the file no longer exists, clear the saved path
                     this.settings.lastCanvasPath = "";
                     await this.saveSettings();
                 }
             } catch (error) {
-                console.error("Error loading canvas file:", error);
+                // Error loading canvas file
                 // Don't clear the path here, as it might be a temporary error
             }
-        } else {
-            console.log("No saved canvas path found in settings");
         }
     }
 
@@ -265,20 +225,11 @@ export default class Main extends Plugin {
             if (this.selectedCanvas) {
                 // Ensure we're saving the full path
                 this.settings.lastCanvasPath = this.selectedCanvas.path;
-                console.log(
-                    "Saving canvas path to settings:",
-                    this.settings.lastCanvasPath,
-                );
             }
 
             // Save settings to data.json
             await this.saveData(this.settings);
-            console.log(
-                "Settings saved to data.json:",
-                JSON.stringify(this.settings),
-            );
         } catch (error) {
-            console.error("Error saving settings:", error);
             new Notice("Error saving settings. Please try again.");
         }
     }
@@ -298,7 +249,6 @@ export default class Main extends Plugin {
 
                 // Save the selected canvas path to settings - ensure it's the full path
                 this.settings.lastCanvasPath = file.path;
-                console.log("Selected canvas file with full path:", file.path);
 
                 await this.saveSettings();
 
@@ -315,7 +265,6 @@ export default class Main extends Plugin {
                 this.updateStatusBar();
 
                 // Log for debugging
-                console.log(`Canvas selected and saved: ${file.path}`);
             },
         );
         modal.open();
@@ -355,9 +304,6 @@ export default class Main extends Plugin {
             if (line && line.trim() !== "") {
                 // Use the current line but don't visually select it
                 selectedText = line;
-                console.log(
-                    "Using current line for sending to canvas without changing selection",
-                );
             } else {
                 new Notice("Current line is empty");
                 return;
@@ -409,7 +355,6 @@ export default class Main extends Plugin {
 
             new Notice(`Selection sent to canvas: ${this.selectedCanvas.name}`);
         } catch (error) {
-            console.error("Error sending selection to canvas:", error);
             new Notice("Error sending selection to canvas");
 
             // Restore the cursor position even if there was an error
@@ -441,7 +386,6 @@ export default class Main extends Plugin {
             await this.addNoteToCanvas(currentFile);
             new Notice(`Note sent to canvas: ${this.selectedCanvas.name}`);
         } catch (error) {
-            console.error("Error sending note to canvas:", error);
             new Notice(
                 `Failed to send note to canvas: ${error.message || "Unknown error"}`,
             );
@@ -472,7 +416,6 @@ export default class Main extends Plugin {
             await this.addNoteAsLinkToCanvas(currentFile);
             new Notice(`Note link sent to canvas: ${this.selectedCanvas.name}`);
         } catch (error) {
-            console.error("Error sending note link to canvas:", error);
             new Notice(
                 `Failed to send note link to canvas: ${
                     error.message || "Unknown error"
@@ -545,22 +488,9 @@ export default class Main extends Plugin {
 
         // Try the standard way first - files with .canvas extension
         let canvasFiles = files.filter((file) => file.extension === "canvas");
-        console.log(
-            "Found canvas files (by extension):",
-            canvasFiles.length,
-            "files",
-        );
 
         // If no canvas files were found, try alternative detection methods
         if (canvasFiles.length === 0) {
-            // Log all file extensions for debugging
-            const allExtensions = new Set(files.map((f) => f.extension));
-            console.log(
-                "All file extensions in vault:",
-                Array.from(allExtensions),
-            );
-            console.log("Total files in vault:", files.length);
-
             // Try alternative detection methods:
             // 1. Check for files with "canvas" in the name
             const nameBasedCanvasFiles = files.filter((f) =>
@@ -568,10 +498,6 @@ export default class Main extends Plugin {
             );
 
             if (nameBasedCanvasFiles.length > 0) {
-                console.log(
-                    "Found potential canvas files by name:",
-                    nameBasedCanvasFiles.map((f) => f.path),
-                );
                 canvasFiles = nameBasedCanvasFiles;
             }
 
@@ -585,11 +511,6 @@ export default class Main extends Plugin {
                 );
 
             if (canvasFolders.length > 0) {
-                console.log(
-                    "Found potential canvas folders:",
-                    canvasFolders.map((f) => f.path),
-                );
-
                 // Look for files in these folders
                 const filesInCanvasFolders = files.filter((f) =>
                     canvasFolders.some((folder) =>
@@ -625,32 +546,21 @@ export default class Main extends Plugin {
 
     // Helper method to find a canvas file by name or path
     findCanvasFile(nameOrPath: string): TFile | null {
-        // Log all canvas files in the vault for debugging
+        // Get all canvas files in the vault
         const allCanvasFiles = this.getCanvasFiles();
-        console.log(
-            "All canvas files in vault:",
-            allCanvasFiles.map((f) => f.path),
-        );
 
         // First try to get by exact path
         const fileByPath = this.app.vault.getAbstractFileByPath(nameOrPath);
         if (fileByPath instanceof TFile && fileByPath.extension === "canvas") {
-            console.log("Found canvas file by exact path:", fileByPath.path);
             return fileByPath;
         }
 
         // If that fails, try to find by name
         const fileName = nameOrPath.split("/").pop() || nameOrPath;
-        console.log("Trying to find canvas by name:", fileName);
 
         // Try exact name match
         let matchingFile = allCanvasFiles.find((f) => f.name === fileName);
-
         if (matchingFile) {
-            console.log(
-                "Found canvas file by exact name match:",
-                matchingFile.path,
-            );
             return matchingFile;
         }
 
@@ -658,12 +568,7 @@ export default class Main extends Plugin {
         matchingFile = allCanvasFiles.find(
             (f) => f.name.toLowerCase() === fileName.toLowerCase(),
         );
-
         if (matchingFile) {
-            console.log(
-                "Found canvas file by case-insensitive name match:",
-                matchingFile.path,
-            );
             return matchingFile;
         }
 
@@ -674,12 +579,7 @@ export default class Main extends Plugin {
                 f.basename === baseNameWithoutExt ||
                 f.basename.toLowerCase() === baseNameWithoutExt.toLowerCase(),
         );
-
         if (matchingFile) {
-            console.log(
-                "Found canvas file by basename match:",
-                matchingFile.path,
-            );
             return matchingFile;
         }
 
@@ -689,16 +589,10 @@ export default class Main extends Plugin {
                 f.name.includes(baseNameWithoutExt) ||
                 f.name.toLowerCase().includes(baseNameWithoutExt.toLowerCase()),
         );
-
         if (matchingFile) {
-            console.log(
-                "Found canvas file by partial name match:",
-                matchingFile.path,
-            );
             return matchingFile;
         }
 
-        console.log("No canvas file found with name:", fileName);
         return null;
     }
 
@@ -774,9 +668,6 @@ export default class Main extends Plugin {
 
             // If position not found but we're working with the current line
             if (!position && content === lineContent) {
-                console.log(
-                    "Using cursor position as fallback for content match",
-                );
                 position = {
                     line: originalCursor.line,
                     offset: 0,
@@ -794,19 +685,16 @@ export default class Main extends Plugin {
                             line: i,
                             offset: lines[i].indexOf(trimmedContent.charAt(0)),
                         };
-                        console.log("Found content using trim normalization");
                         break;
                     }
                 }
             }
 
             if (!position) {
-                console.error("Could not find content in file");
                 // Generate a block ID anyway to ensure embedding works
                 const blockId = BlockReferenceUtils.generateBlockId(
                     this.settings,
                 );
-                console.log("Generated fallback block ID:", blockId);
 
                 // Try to add it to the current line but preserve cursor position
                 const line = originalCursor.line;
@@ -841,7 +729,6 @@ export default class Main extends Plugin {
                     // Restore cursor position
                     editor.setCursor(originalCursor);
 
-                    console.log("Added block ID to current line as fallback");
                     return blockId;
                 }
 
@@ -888,7 +775,6 @@ export default class Main extends Plugin {
 
             return blockId;
         } catch (error) {
-            console.error("Error adding block ID to selection:", error);
             return "";
         }
     }
@@ -923,12 +809,8 @@ export default class Main extends Plugin {
 
                 // Save the initialized structure to the file
                 await this.app.vault.modify(this.selectedCanvas, canvasContent);
-                console.log(
-                    "Initialized empty canvas file with basic structure",
-                );
             }
         } catch (error) {
-            console.error("Error reading canvas file:", error);
             new Notice(
                 `Failed to read canvas file: ${error.message || "Unknown error"}`,
             );
@@ -944,16 +826,12 @@ export default class Main extends Plugin {
             if (!canvasData.nodes) canvasData.nodes = [];
             if (!canvasData.edges) canvasData.edges = [];
         } catch (error) {
-            console.error("Error parsing canvas data:", error);
             new Notice(
                 "Error parsing canvas file. It may not be in the expected format.",
             );
 
             // Try to recover by creating a new canvas structure
             canvasData = { nodes: [], edges: [] };
-            console.log(
-                "Created new canvas data structure after parsing error",
-            );
         }
 
         // Determine the position for the new node
@@ -1027,7 +905,6 @@ export default class Main extends Plugin {
                 JSON.stringify(canvasData, null, 2),
             );
         } catch (error) {
-            console.error("Error saving canvas:", error);
             new Notice(
                 `Failed to save canvas: ${error.message || "Unknown error"}`,
             );
@@ -1049,12 +926,8 @@ export default class Main extends Plugin {
 
                 // Save the initialized structure to the file
                 await this.app.vault.modify(this.selectedCanvas, canvasContent);
-                console.log(
-                    "Initialized empty canvas file with basic structure",
-                );
             }
         } catch (error) {
-            console.error("Error reading canvas file:", error);
             new Notice(
                 `Failed to read canvas file: ${error.message || "Unknown error"}`,
             );
@@ -1070,16 +943,12 @@ export default class Main extends Plugin {
             if (!canvasData.nodes) canvasData.nodes = [];
             if (!canvasData.edges) canvasData.edges = [];
         } catch (error) {
-            console.error("Error parsing canvas data:", error);
             new Notice(
                 "Error parsing canvas file. It may not be in the expected format.",
             );
 
             // Try to recover by creating a new canvas structure
             canvasData = { nodes: [], edges: [] };
-            console.log(
-                "Created new canvas data structure after parsing error",
-            );
         }
 
         // Determine the position for the new node
@@ -1110,7 +979,6 @@ export default class Main extends Plugin {
 
             new Notice(`Note sent to canvas: ${this.selectedCanvas.name}`);
         } catch (error) {
-            console.error("Error saving canvas:", error);
             new Notice(
                 `Failed to save canvas: ${error.message || "Unknown error"}`,
             );
@@ -1132,12 +1000,8 @@ export default class Main extends Plugin {
 
                 // Save the initialized structure to the file
                 await this.app.vault.modify(this.selectedCanvas, canvasContent);
-                console.log(
-                    "Initialized empty canvas file with basic structure",
-                );
             }
         } catch (error) {
-            console.error("Error reading canvas file:", error);
             new Notice(
                 `Failed to read canvas file: ${error.message || "Unknown error"}`,
             );
@@ -1153,16 +1017,12 @@ export default class Main extends Plugin {
             if (!canvasData.nodes) canvasData.nodes = [];
             if (!canvasData.edges) canvasData.edges = [];
         } catch (error) {
-            console.error("Error parsing canvas data:", error);
             new Notice(
                 "Error parsing canvas file. It may not be in the expected format.",
             );
 
             // Try to recover by creating a new canvas structure
             canvasData = { nodes: [], edges: [] };
-            console.log(
-                "Created new canvas data structure after parsing error",
-            );
         }
 
         // Determine the position for the new node
@@ -1202,7 +1062,6 @@ export default class Main extends Plugin {
                 JSON.stringify(canvasData, null, 2),
             );
         } catch (error) {
-            console.error("Error saving canvas:", error);
             new Notice(
                 `Failed to save canvas: ${error.message || "Unknown error"}`,
             );
@@ -1246,20 +1105,10 @@ export default class Main extends Plugin {
     debugCanvasFinding() {
         // Log all canvas files in the vault
         const allCanvasFiles = this.getCanvasFiles();
-        console.log("=== DEBUG: Canvas File Finding ===");
-        console.log(
-            "All canvas files in vault:",
-            allCanvasFiles.map((f) => f.path),
-        );
 
         // If we have a saved path, try to find it
         if (this.settings.lastCanvasPath) {
-            console.log(
-                "Testing finding with saved path:",
-                this.settings.lastCanvasPath,
-            );
             const found = this.findCanvasFile(this.settings.lastCanvasPath);
-            console.log("Result:", found ? found.path : "Not found");
         }
 
         // Show a notice with the number of canvas files
