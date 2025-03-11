@@ -1155,10 +1155,7 @@ export default class Main extends Plugin {
     // Helper method to append text to open tasks if settings enabled
     // When modifySourceOnly is true, it only returns modified text for updating the source file
     // When modifySourceOnly is false, it modifies text for both source file and canvas content
-    appendTextToOpenTask(
-        text: string,
-        modifySourceOnly = false,
-    ): string {
+    appendTextToOpenTask(text: string, modifySourceOnly = false): string {
         if (
             !text ||
             !text.trim().startsWith("- [ ]") ||
