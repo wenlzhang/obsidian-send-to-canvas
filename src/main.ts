@@ -703,7 +703,7 @@ export default class Main extends Plugin {
 
                 if (currentContent && currentContent.trim() !== "") {
                     // Check if we need to append the task text configuration
-                    let modifiedContent = this.appendTextToOpenTask(
+                    const modifiedContent = this.appendTextToOpenTask(
                         currentContent,
                         true,
                     );
@@ -736,7 +736,7 @@ export default class Main extends Plugin {
             const blockId = BlockReferenceUtils.generateBlockId(this.settings);
 
             // Check if we need to append the task text configuration
-            let modifiedLine = this.appendTextToOpenTask(line, true);
+            const modifiedLine = this.appendTextToOpenTask(line, true);
             console.log("Original line:", line);
             console.log("Modified line after task text append:", modifiedLine);
 
@@ -1157,7 +1157,7 @@ export default class Main extends Plugin {
     // When modifySourceOnly is false, it modifies text for both source file and canvas content
     appendTextToOpenTask(
         text: string,
-        modifySourceOnly: boolean = false,
+        modifySourceOnly = false,
     ): string {
         if (
             !text ||
