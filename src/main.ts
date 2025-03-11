@@ -14,7 +14,7 @@ import {
 import { SettingsTab } from "./settingsTab";
 import { SendToCanvasSettings, DEFAULT_SETTINGS, SendFormat } from "./settings";
 import { BlockReferenceUtils } from "./utils";
-import "./styles.css";
+import "../styles.css";
 
 // Canvas data structures based on Obsidian's Canvas API
 interface CanvasNodeData {
