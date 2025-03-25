@@ -28,7 +28,7 @@ export default class Main extends Plugin {
     settings: SendToCanvasSettings;
     selectedCanvas: TFile | null = null;
     statusBarItem: HTMLElement;
-    debugMode: boolean = false; // Add a debug mode flag
+    debugMode = false; // Add a debug mode flag
 
     async onload() {
         await this.loadSettings();
