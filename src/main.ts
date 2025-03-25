@@ -11,7 +11,15 @@ import {
     FuzzySuggestModal,
     moment,
 } from "obsidian";
-import { CanvasNodeData, CanvasData, CanvasTextData, CanvasFileData, CanvasLinkData, CanvasEdgeData, AllCanvasNodeData } from "obsidian/canvas";
+import {
+    CanvasNodeData,
+    CanvasData,
+    CanvasTextData,
+    CanvasFileData,
+    CanvasLinkData,
+    CanvasEdgeData,
+    AllCanvasNodeData,
+} from "obsidian/canvas";
 import { SettingsTab } from "./settingsTab";
 import { SendToCanvasSettings, DEFAULT_SETTINGS, SendFormat } from "./settings";
 import { BlockReferenceUtils } from "./utils";
@@ -29,15 +37,15 @@ export default class Main extends Plugin {
         // Add status bar item for selected canvas
         this.statusBarItem = this.addStatusBarItem();
         this.statusBarItem.addClass("send-to-canvas-status");
-        
+
         // Make the status bar item clickable to select a new canvas
         this.statusBarItem.style.cursor = "pointer";
-        
+
         // Add the click event listener once during initialization
         this.statusBarItem.addEventListener("click", () => {
             this.selectCanvasFile();
         });
-        
+
         this.updateStatusBar(); // Initialize the status bar immediately
 
         // Wait for Obsidian layout to be ready before loading canvas files
@@ -522,27 +530,30 @@ export default class Main extends Plugin {
         // If that fails, extract the filename
         const fileName = nameOrPath.split("/").pop() || nameOrPath;
         const baseNameWithoutExt = fileName.replace(/\.canvas$/, "");
-        
+
         // Try to find the file by name using the vault's getAbstractFileByPath with different variations
         // This avoids iterating through all files multiple times
-        const exactNameFile = this.app.vault.getAbstractFileByPath(`${baseNameWithoutExt}.canvas`);
+        const exactNameFile = this.app.vault.getAbstractFileByPath(
+            `${baseNameWithoutExt}.canvas`,
+        );
         if (exactNameFile instanceof TFile) {
             return exactNameFile;
         }
-        
+
         // As a last resort, get all canvas files and search through them
         const allCanvasFiles = this.getCanvasFiles();
-        
+
         // Try exact name match
-        const matchingFile = allCanvasFiles.find((f) => 
-            f.name === fileName || 
-            f.name.toLowerCase() === fileName.toLowerCase() ||
-            f.basename === baseNameWithoutExt ||
-            f.basename.toLowerCase() === baseNameWithoutExt.toLowerCase() ||
-            f.name.includes(baseNameWithoutExt) ||
-            f.name.toLowerCase().includes(baseNameWithoutExt.toLowerCase())
+        const matchingFile = allCanvasFiles.find(
+            (f) =>
+                f.name === fileName ||
+                f.name.toLowerCase() === fileName.toLowerCase() ||
+                f.basename === baseNameWithoutExt ||
+                f.basename.toLowerCase() === baseNameWithoutExt.toLowerCase() ||
+                f.name.includes(baseNameWithoutExt) ||
+                f.name.toLowerCase().includes(baseNameWithoutExt.toLowerCase()),
         );
-        
+
         return matchingFile || null;
     }
 
@@ -609,7 +620,7 @@ export default class Main extends Plugin {
 
             // First, try to find the content in the editor
             let position: { line: number; offset: number } | null = null;
-            
+
             // Check if the content is the current line
             if (content === lineContent) {
                 position = {
@@ -628,7 +639,7 @@ export default class Main extends Plugin {
                         break;
                     }
                 }
-                
+
                 // If not found, try with trimmed content
                 if (!position) {
                     const trimmedContent = content.trim();
@@ -664,7 +675,7 @@ export default class Main extends Plugin {
 
                     // Use editor.setLine instead of modifying the file directly
                     editor.setLine(line, modifiedContent + ` ^${blockId}`);
-                    
+
                     // Restore cursor position
                     editor.setCursor(originalCursor);
 
@@ -690,13 +701,19 @@ export default class Main extends Plugin {
             const modifiedLine = this.appendTextToOpenTask(line, true);
             if (this.debugMode) {
                 console.log("Original line:", line);
-                console.log("Modified line after task text append:", modifiedLine);
+                console.log(
+                    "Modified line after task text append:",
+                    modifiedLine,
+                );
             }
 
             // Add the block ID to the line using editor.setLine
             editor.setLine(position.line, modifiedLine + ` ^${blockId}`);
             if (this.debugMode) {
-                console.log("Final line with block ID:", modifiedLine + ` ^${blockId}`);
+                console.log(
+                    "Final line with block ID:",
+                    modifiedLine + ` ^${blockId}`,
+                );
             }
 
             // Restore cursor position if needed
@@ -733,7 +750,10 @@ export default class Main extends Plugin {
                 canvasContent = JSON.stringify({ nodes: [], edges: [] });
 
                 // Save the initialized structure to the file
-                await this.app.vault.process(this.selectedCanvas, (data) => canvasContent);
+                await this.app.vault.process(
+                    this.selectedCanvas,
+                    (data) => canvasContent,
+                );
             }
         } catch (error) {
             new Notice(
@@ -818,7 +838,7 @@ export default class Main extends Plugin {
                                     // Update the file
                                     await this.app.vault.process(
                                         sourceFile,
-                                        (data) => lines.join("\n")
+                                        (data) => lines.join("\n"),
                                     );
                                 }
                                 break;
@@ -878,7 +898,9 @@ export default class Main extends Plugin {
 
         // Save the modified canvas
         try {
-            await this.app.vault.process(this.selectedCanvas, (data) => JSON.stringify(canvasData, null, 2));
+            await this.app.vault.process(this.selectedCanvas, (data) =>
+                JSON.stringify(canvasData, null, 2),
+            );
         } catch (error) {
             new Notice(
                 `Failed to save canvas: ${error.message || "Unknown error"}`,
@@ -900,7 +922,10 @@ export default class Main extends Plugin {
                 canvasContent = JSON.stringify({ nodes: [], edges: [] });
 
                 // Save the initialized structure to the file
-                await this.app.vault.process(this.selectedCanvas, (data) => canvasContent);
+                await this.app.vault.process(
+                    this.selectedCanvas,
+                    (data) => canvasContent,
+                );
             }
         } catch (error) {
             new Notice(
@@ -945,7 +970,9 @@ export default class Main extends Plugin {
 
         // Save the modified canvas
         try {
-            await this.app.vault.process(this.selectedCanvas, (data) => JSON.stringify(canvasData, null, 2));
+            await this.app.vault.process(this.selectedCanvas, (data) =>
+                JSON.stringify(canvasData, null, 2),
+            );
 
             new Notice(`Note sent to canvas: ${this.selectedCanvas.name}`);
         } catch (error) {
@@ -969,7 +996,10 @@ export default class Main extends Plugin {
                 canvasContent = JSON.stringify({ nodes: [], edges: [] });
 
                 // Save the initialized structure to the file
-                await this.app.vault.process(this.selectedCanvas, (data) => canvasContent);
+                await this.app.vault.process(
+                    this.selectedCanvas,
+                    (data) => canvasContent,
+                );
             }
         } catch (error) {
             new Notice(
@@ -1025,7 +1055,9 @@ export default class Main extends Plugin {
 
         // Save the modified canvas
         try {
-            await this.app.vault.process(this.selectedCanvas, (data) => JSON.stringify(canvasData, null, 2));
+            await this.app.vault.process(this.selectedCanvas, (data) =>
+                JSON.stringify(canvasData, null, 2),
+            );
         } catch (error) {
             new Notice(
                 `Failed to save canvas: ${error.message || "Unknown error"}`,
