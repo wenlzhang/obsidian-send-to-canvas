@@ -21,6 +21,7 @@ export default class Main extends Plugin {
     settings: SendToCanvasSettings;
     selectedCanvas: TFile | null = null;
     statusBarItem: HTMLElement;
+    debugMode: boolean = false; // Add a debug mode flag
 
     async onload() {
         await this.loadSettings();
@@ -472,10 +473,12 @@ export default class Main extends Plugin {
                 );
 
                 if (filesInCanvasFolders.length > 0) {
-                    console.log(
-                        "Found files in canvas folders:",
-                        filesInCanvasFolders.map((f) => f.path),
-                    );
+                    if (this.debugMode) {
+                        console.log(
+                            "Found files in canvas folders:",
+                            filesInCanvasFolders.map((f) => f.path),
+                        );
+                    }
                     // Add these to our canvas files if we haven't found any yet
                     if (canvasFiles.length === 0) {
                         canvasFiles = filesInCanvasFolders;
@@ -486,10 +489,12 @@ export default class Main extends Plugin {
             // 3. Check for any JSON files that might be canvas files
             const jsonFiles = files.filter((f) => f.extension === "json");
             if (jsonFiles.length > 0 && canvasFiles.length === 0) {
-                console.log(
-                    "Found JSON files that might be canvas files:",
-                    jsonFiles.map((f) => f.path),
-                );
+                if (this.debugMode) {
+                    console.log(
+                        "Found JSON files that might be canvas files:",
+                        jsonFiles.map((f) => f.path),
+                    );
+                }
                 // We don't automatically use these, but log them for debugging
             }
         }
@@ -674,12 +679,16 @@ export default class Main extends Plugin {
 
             // Check if we need to append the task text configuration
             const modifiedLine = this.appendTextToOpenTask(line, true);
-            console.log("Original line:", line);
-            console.log("Modified line after task text append:", modifiedLine);
+            if (this.debugMode) {
+                console.log("Original line:", line);
+                console.log("Modified line after task text append:", modifiedLine);
+            }
 
             // Add the block ID to the line using editor.setLine
             editor.setLine(position.line, modifiedLine + ` ^${blockId}`);
-            console.log("Final line with block ID:", modifiedLine + ` ^${blockId}`);
+            if (this.debugMode) {
+                console.log("Final line with block ID:", modifiedLine + ` ^${blockId}`);
+            }
 
             // Restore cursor position if needed
             if (position.line === originalCursor.line) {
@@ -691,13 +700,6 @@ export default class Main extends Plugin {
             console.error("Error adding block ID to selection:", error);
             return "";
         }
-    }
-
-    generateBlockId(): string {
-        // Generate a random node ID for canvas
-        return (
-            Date.now().toString() + Math.random().toString(36).substring(2, 9)
-        );
     }
 
     async addToCanvas(
