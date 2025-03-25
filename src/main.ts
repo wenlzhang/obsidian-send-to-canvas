@@ -23,7 +23,6 @@ import {
 import { SettingsTab } from "./settingsTab";
 import { SendToCanvasSettings, DEFAULT_SETTINGS, SendFormat } from "./settings";
 import { BlockReferenceUtils } from "./utils";
-import "../styles.css";
 
 export default class Main extends Plugin {
     settings: SendToCanvasSettings;
