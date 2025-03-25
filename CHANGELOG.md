@@ -10,6 +10,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.3.0] - 2025-03-25
+
+### Changes
+
+- Fix eslint errors
+- Update css handling
+- Update README.md
+- Update esbuild.config.mjs
+- Improve code format
+- Improve status bar handling
+- Address review comments
+- Remove redundant code
+- Use editor interface
+- Improve canvas file checking
+- Update canvas types
+- Remove moment
+- Improve code format
+
 ## [0.2.0] - 2025-03-11
 
 ### Changes
