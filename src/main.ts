@@ -30,20 +30,11 @@ export default class Main extends Plugin {
         this.statusBarItem.addClass("send-to-canvas-status");
         this.updateStatusBar(); // Initialize the status bar immediately
 
-        // Wait for Obsidian to fully load all files before trying to find the canvas file
-        // Use a timeout with the user-configurable delay
-        setTimeout(() => {
+        // Wait for Obsidian layout to be ready before loading canvas files
+        this.app.workspace.onLayoutReady(() => {
             this.loadCanvasFile();
             this.updateStatusBar();
-
-            // Check if we have canvas files in the vault
-            const canvasFiles = this.getCanvasFiles();
-            if (canvasFiles.length === 0) {
-                // No canvas files found during startup
-            } else {
-                // Found canvas files during startup
-            }
-        }, this.settings.startupLoadDelay * 1000); // Convert seconds to milliseconds
+        });
 
         // Add settings tab
         this.addSettingTab(new SettingsTab(this.app, this));
@@ -508,54 +499,37 @@ export default class Main extends Plugin {
 
     // Helper method to find a canvas file by name or path
     findCanvasFile(nameOrPath: string): TFile | null {
-        // Get all canvas files in the vault
-        const allCanvasFiles = this.getCanvasFiles();
-
-        // First try to get by exact path
+        // First try to get by exact path - this is the most efficient method
         const fileByPath = this.app.vault.getAbstractFileByPath(nameOrPath);
         if (fileByPath instanceof TFile && fileByPath.extension === "canvas") {
             return fileByPath;
         }
 
-        // If that fails, try to find by name
+        // If that fails, extract the filename
         const fileName = nameOrPath.split("/").pop() || nameOrPath;
-
-        // Try exact name match
-        let matchingFile = allCanvasFiles.find((f) => f.name === fileName);
-        if (matchingFile) {
-            return matchingFile;
-        }
-
-        // Try case-insensitive name match
-        matchingFile = allCanvasFiles.find(
-            (f) => f.name.toLowerCase() === fileName.toLowerCase(),
-        );
-        if (matchingFile) {
-            return matchingFile;
-        }
-
-        // Try basename match (without extension)
         const baseNameWithoutExt = fileName.replace(/\.canvas$/, "");
-        matchingFile = allCanvasFiles.find(
-            (f) =>
-                f.basename === baseNameWithoutExt ||
-                f.basename.toLowerCase() === baseNameWithoutExt.toLowerCase(),
-        );
-        if (matchingFile) {
-            return matchingFile;
+        
+        // Try to find the file by name using the vault's getAbstractFileByPath with different variations
+        // This avoids iterating through all files multiple times
+        const exactNameFile = this.app.vault.getAbstractFileByPath(`${baseNameWithoutExt}.canvas`);
+        if (exactNameFile instanceof TFile) {
+            return exactNameFile;
         }
-
-        // Try partial name match as last resort
-        matchingFile = allCanvasFiles.find(
-            (f) =>
-                f.name.includes(baseNameWithoutExt) ||
-                f.name.toLowerCase().includes(baseNameWithoutExt.toLowerCase()),
+        
+        // As a last resort, get all canvas files and search through them
+        const allCanvasFiles = this.getCanvasFiles();
+        
+        // Try exact name match
+        const matchingFile = allCanvasFiles.find((f) => 
+            f.name === fileName || 
+            f.name.toLowerCase() === fileName.toLowerCase() ||
+            f.basename === baseNameWithoutExt ||
+            f.basename.toLowerCase() === baseNameWithoutExt.toLowerCase() ||
+            f.name.includes(baseNameWithoutExt) ||
+            f.name.toLowerCase().includes(baseNameWithoutExt.toLowerCase())
         );
-        if (matchingFile) {
-            return matchingFile;
-        }
-
-        return null;
+        
+        return matchingFile || null;
     }
 
     /**
