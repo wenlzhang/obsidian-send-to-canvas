@@ -45,7 +45,8 @@ try {
             '@lezer/common',
             '@lezer/highlight',
             '@lezer/lr',
-            ...builtins
+            ...builtins,
+            '*.css', // This tells esbuild to treat CSS imports as external
         ],
         format: 'cjs',
         target: 'es2018',
