@@ -11,50 +11,11 @@ import {
     FuzzySuggestModal,
     moment,
 } from "obsidian";
+import { CanvasNodeData, CanvasData, CanvasTextData, CanvasFileData, CanvasLinkData, CanvasEdgeData, AllCanvasNodeData } from "obsidian/canvas";
 import { SettingsTab } from "./settingsTab";
 import { SendToCanvasSettings, DEFAULT_SETTINGS, SendFormat } from "./settings";
 import { BlockReferenceUtils } from "./utils";
 import "../styles.css";
-
-// Canvas data structures based on Obsidian's Canvas API
-interface CanvasNodeData {
-    id: string;
-    type: string;
-    position: {
-        x: number;
-        y: number;
-    };
-    width: number;
-    height: number;
-}
-
-interface CanvasTextNodeData extends CanvasNodeData {
-    type: "text";
-    text: string;
-}
-
-interface CanvasFileNodeData extends CanvasNodeData {
-    type: "file";
-    file: string;
-}
-
-interface CanvasLinkNodeData extends CanvasNodeData {
-    type: "link";
-    url: string;
-}
-
-interface CanvasEdgeData {
-    id: string;
-    fromNode: string;
-    fromSide: string;
-    toNode: string;
-    toSide: string;
-}
-
-interface CanvasData {
-    nodes: CanvasNodeData[];
-    edges: CanvasEdgeData[];
-}
 
 export default class Main extends Plugin {
     settings: SendToCanvasSettings;
@@ -918,13 +879,11 @@ export default class Main extends Plugin {
         }
 
         // Create the new node
-        const newNode: CanvasTextNodeData = {
+        const newNode: CanvasTextData = {
             id: this.generateNodeId(),
             type: "text",
-            position: {
-                x: newNodePosition.x,
-                y: newNodePosition.y,
-            },
+            x: newNodePosition.x,
+            y: newNodePosition.y,
             width: nodeWidth,
             height: nodeHeight,
             text: textContent,
@@ -990,14 +949,12 @@ export default class Main extends Plugin {
         const newNodePosition = this.calculateNewNodePosition(canvasData.nodes);
 
         // Create a new file node
-        const newNode: CanvasFileNodeData = {
+        const newNode: CanvasFileData = {
             id: this.generateNodeId(),
             type: "file",
             file: noteFile.path,
-            position: {
-                x: newNodePosition.x,
-                y: newNodePosition.y,
-            },
+            x: newNodePosition.x,
+            y: newNodePosition.y,
             width: this.settings.fileNodeWidth,
             height: this.settings.fileNodeHeight,
         };
@@ -1075,14 +1032,12 @@ export default class Main extends Plugin {
         }
 
         // Create a new text node with the note link in Obsidian markdown format
-        const newNode: CanvasTextNodeData = {
+        const newNode: CanvasTextData = {
             id: this.generateNodeId(),
             type: "text",
             text: linkText,
-            position: {
-                x: newNodePosition.x,
-                y: newNodePosition.y,
-            },
+            x: newNodePosition.x,
+            y: newNodePosition.y,
             width: this.settings.linkNodeWidth,
             height: this.settings.linkNodeHeight,
         };
@@ -1175,15 +1130,13 @@ export default class Main extends Plugin {
         return text;
     }
 
-    createTextNode(text: string): CanvasTextNodeData {
+    createTextNode(text: string): CanvasTextData {
         return {
             id: this.generateNodeId(),
             type: "text",
             text,
-            position: {
-                x: 0,
-                y: 0,
-            },
+            x: 0,
+            y: 0,
             width: 400,
             height: 200,
         };
