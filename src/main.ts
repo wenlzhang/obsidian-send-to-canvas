@@ -29,6 +29,15 @@ export default class Main extends Plugin {
         // Add status bar item for selected canvas
         this.statusBarItem = this.addStatusBarItem();
         this.statusBarItem.addClass("send-to-canvas-status");
+        
+        // Make the status bar item clickable to select a new canvas
+        this.statusBarItem.style.cursor = "pointer";
+        
+        // Add the click event listener once during initialization
+        this.statusBarItem.addEventListener("click", () => {
+            this.selectCanvasFile();
+        });
+        
         this.updateStatusBar(); // Initialize the status bar immediately
 
         // Wait for Obsidian layout to be ready before loading canvas files
@@ -1040,21 +1049,6 @@ export default class Main extends Plugin {
             this.statusBarItem.addClass("no-canvas-selected");
             this.statusBarItem.removeClass("has-canvas-selected");
         }
-
-        // Make the status bar item clickable to select a new canvas
-        this.statusBarItem.style.cursor = "pointer";
-
-        // Remove any existing event listeners to prevent duplicates
-        const newItem = this.statusBarItem.cloneNode(true);
-        this.statusBarItem.parentNode?.replaceChild(
-            newItem,
-            this.statusBarItem,
-        );
-        this.statusBarItem = newItem as HTMLElement;
-
-        this.statusBarItem.addEventListener("click", () => {
-            this.selectCanvasFile();
-        });
     }
 
     // Debug method to test canvas file finding
