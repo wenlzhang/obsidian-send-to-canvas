@@ -724,7 +724,7 @@ export default class Main extends Plugin {
                 canvasContent = JSON.stringify({ nodes: [], edges: [] });
 
                 // Save the initialized structure to the file
-                await this.app.vault.modify(this.selectedCanvas, canvasContent);
+                await this.app.vault.process(this.selectedCanvas, (data) => canvasContent);
             }
         } catch (error) {
             new Notice(
@@ -807,9 +807,9 @@ export default class Main extends Plugin {
                                     lines[i] = modifiedLine;
 
                                     // Update the file
-                                    await this.app.vault.modify(
+                                    await this.app.vault.process(
                                         sourceFile,
-                                        lines.join("\n"),
+                                        (data) => lines.join("\n")
                                     );
                                 }
                                 break;
@@ -869,10 +869,7 @@ export default class Main extends Plugin {
 
         // Save the modified canvas
         try {
-            await this.app.vault.modify(
-                this.selectedCanvas,
-                JSON.stringify(canvasData, null, 2),
-            );
+            await this.app.vault.process(this.selectedCanvas, (data) => JSON.stringify(canvasData, null, 2));
         } catch (error) {
             new Notice(
                 `Failed to save canvas: ${error.message || "Unknown error"}`,
@@ -894,7 +891,7 @@ export default class Main extends Plugin {
                 canvasContent = JSON.stringify({ nodes: [], edges: [] });
 
                 // Save the initialized structure to the file
-                await this.app.vault.modify(this.selectedCanvas, canvasContent);
+                await this.app.vault.process(this.selectedCanvas, (data) => canvasContent);
             }
         } catch (error) {
             new Notice(
@@ -939,10 +936,7 @@ export default class Main extends Plugin {
 
         // Save the modified canvas
         try {
-            await this.app.vault.modify(
-                this.selectedCanvas,
-                JSON.stringify(canvasData, null, 2),
-            );
+            await this.app.vault.process(this.selectedCanvas, (data) => JSON.stringify(canvasData, null, 2));
 
             new Notice(`Note sent to canvas: ${this.selectedCanvas.name}`);
         } catch (error) {
@@ -966,7 +960,7 @@ export default class Main extends Plugin {
                 canvasContent = JSON.stringify({ nodes: [], edges: [] });
 
                 // Save the initialized structure to the file
-                await this.app.vault.modify(this.selectedCanvas, canvasContent);
+                await this.app.vault.process(this.selectedCanvas, (data) => canvasContent);
             }
         } catch (error) {
             new Notice(
@@ -1022,10 +1016,7 @@ export default class Main extends Plugin {
 
         // Save the modified canvas
         try {
-            await this.app.vault.modify(
-                this.selectedCanvas,
-                JSON.stringify(canvasData, null, 2),
-            );
+            await this.app.vault.process(this.selectedCanvas, (data) => JSON.stringify(canvasData, null, 2));
         } catch (error) {
             new Notice(
                 `Failed to save canvas: ${error.message || "Unknown error"}`,
