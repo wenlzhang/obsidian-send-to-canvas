@@ -591,37 +591,42 @@ export default class Main extends Plugin {
         try {
             // Save the original cursor position
             const originalCursor = editor.getCursor();
-
-            // Read the file content
-            const fileContent = await this.app.vault.read(file);
             const lineContent = editor.getLine(originalCursor.line);
 
-            // Find the position of the content in the file
-            let position = BlockReferenceUtils.findTextPosition(
-                fileContent,
-                content,
-            );
-
-            // If position not found but we're working with the current line
-            if (!position && content === lineContent) {
+            // First, try to find the content in the editor
+            let position: { line: number; offset: number } | null = null;
+            
+            // Check if the content is the current line
+            if (content === lineContent) {
                 position = {
                     line: originalCursor.line,
                     offset: 0,
                 };
-            }
-
-            if (!position) {
-                // Try one more approach - look for content after basic normalization
-                const lines = fileContent.split("\n");
-                const trimmedContent = content.trim();
-
-                for (let i = 0; i < lines.length; i++) {
-                    if (lines[i].trim() === trimmedContent) {
+            } else {
+                // Search through all lines in the editor
+                for (let i = 0; i < editor.lineCount(); i++) {
+                    const line = editor.getLine(i);
+                    if (line.includes(content)) {
                         position = {
                             line: i,
-                            offset: lines[i].indexOf(trimmedContent.charAt(0)),
+                            offset: line.indexOf(content),
                         };
                         break;
+                    }
+                }
+                
+                // If not found, try with trimmed content
+                if (!position) {
+                    const trimmedContent = content.trim();
+                    for (let i = 0; i < editor.lineCount(); i++) {
+                        const line = editor.getLine(i);
+                        if (line.trim() === trimmedContent) {
+                            position = {
+                                line: i,
+                                offset: line.indexOf(trimmedContent.charAt(0)),
+                            };
+                            break;
+                        }
                     }
                 }
             }
@@ -643,11 +648,9 @@ export default class Main extends Plugin {
                         true,
                     );
 
-                    // Update the file directly instead of using editor.setLine to preserve cursor
-                    const lines = fileContent.split("\n");
-                    lines[line] = modifiedContent + ` ^${blockId}`;
-                    await this.app.vault.modify(file, lines.join("\n"));
-
+                    // Use editor.setLine instead of modifying the file directly
+                    editor.setLine(line, modifiedContent + ` ^${blockId}`);
+                    
                     // Restore cursor position
                     editor.setCursor(originalCursor);
 
@@ -658,8 +661,7 @@ export default class Main extends Plugin {
             }
 
             // Check if the line already has a block ID
-            const lines = fileContent.split("\n");
-            const line = lines[position.line];
+            const line = editor.getLine(position.line);
 
             // If the line already has a block ID, return it
             const existingIdMatch = line.match(/\^([a-zA-Z0-9-]+)$/);
@@ -675,12 +677,9 @@ export default class Main extends Plugin {
             console.log("Original line:", line);
             console.log("Modified line after task text append:", modifiedLine);
 
-            // Add the block ID to the line
-            lines[position.line] = modifiedLine + ` ^${blockId}`;
-            console.log("Final line with block ID:", lines[position.line]);
-
-            // Update the file
-            await this.app.vault.modify(file, lines.join("\n"));
+            // Add the block ID to the line using editor.setLine
+            editor.setLine(position.line, modifiedLine + ` ^${blockId}`);
+            console.log("Final line with block ID:", modifiedLine + ` ^${blockId}`);
 
             // Restore cursor position if needed
             if (position.line === originalCursor.line) {
