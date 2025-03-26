@@ -19,7 +19,17 @@ export interface SendToCanvasSettings {
     contentNodeHeight: number;
     fileNodeWidth: number;
     fileNodeHeight: number;
+
+    // Node positioning strategy
+    nodePositionStrategy: "right" | "center" | "smart";
+    
+    // Enhanced node positioning settings
+    rightPositionGap: number;       // Gap between nodes for right positioning
+    groupPlacementEnabled: boolean; // Whether to maintain consistent positioning for sequential additions
+    groupPlacementTimeout: number;  // Time in ms before resetting group placement (5000 = 5 seconds)
 }
+
+export type SendFormat = "plain" | "link" | "embed";
 
 export const DEFAULT_SETTINGS: SendToCanvasSettings = {
     rememberLastCanvas: true,
@@ -40,6 +50,12 @@ export const DEFAULT_SETTINGS: SendToCanvasSettings = {
     contentNodeHeight: 200,
     fileNodeWidth: 400,
     fileNodeHeight: 400,
-};
 
-export type SendFormat = "plain" | "link" | "embed";
+    // Default node positioning strategy
+    nodePositionStrategy: "smart",
+    
+    // Default enhanced positioning settings
+    rightPositionGap: 300,         // Smaller default gap than original 500px
+    groupPlacementEnabled: true,    // Enable group placement by default
+    groupPlacementTimeout: 5000,    // 5 seconds timeout for group placement
+};

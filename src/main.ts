@@ -28,7 +28,11 @@ export default class Main extends Plugin {
     settings: SendToCanvasSettings;
     selectedCanvas: TFile | null = null;
     statusBarItem: HTMLElement;
-    debugMode = false; // Add a debug mode flag
+    debugMode: boolean = false; // Add a debug mode flag
+    
+    // Group placement tracking
+    private lastGroupPosition: { x: number, y: number } | null = null;
+    private lastGroupPlacementTime: number = 0;
 
     async onload() {
         await this.loadSettings();
@@ -565,8 +569,42 @@ export default class Main extends Plugin {
         x: number;
         y: number;
     } {
+        // Log debug information to track what strategy is being used
+        if (this.debugMode) {
+            console.log("Node positioning strategy:", this.settings.nodePositionStrategy);
+            console.log("Group placement enabled:", this.settings.groupPlacementEnabled);
+        }
+        
+        // Check if we should use group placement
+        if (this.settings.groupPlacementEnabled &&
+            this.lastGroupPosition &&
+            Date.now() - this.lastGroupPlacementTime < this.settings.groupPlacementTimeout) {
+            
+            // Use the last group position with a small offset for sequential additions
+            const offsetX = Math.floor(Math.random() * 50) - 25;
+            const offsetY = Math.floor(Math.random() * 50) + 50; // Bias downward for vertical stacking
+            
+            const position = {
+                x: this.lastGroupPosition.x + offsetX,
+                y: this.lastGroupPosition.y + offsetY
+            };
+            
+            // Update last group placement time
+            this.lastGroupPlacementTime = Date.now();
+            this.lastGroupPosition = position;
+            
+            if (this.debugMode) {
+                console.log("Using group placement position:", position);
+            }
+            
+            return position;
+        }
+        
         // Default position if there are no nodes
         if (!nodes || nodes.length === 0) {
+            if (this.debugMode) {
+                console.log("No nodes, using default position");
+            }
             return { x: 0, y: 0 };
         }
 
@@ -580,23 +618,166 @@ export default class Main extends Plugin {
 
         // If no valid nodes, return default position
         if (validNodes.length === 0) {
+            if (this.debugMode) {
+                console.log("No valid nodes, using default position");
+            }
             return { x: 0, y: 0 };
         }
 
-        // Find the rightmost node
-        let rightmostNode = validNodes[0];
-        for (const node of validNodes) {
-            if (node.position.x > rightmostNode.position.x) {
-                rightmostNode = node;
+        // Use different positioning strategies based on settings
+        let position: { x: number, y: number };
+        
+        // Get the positioning strategy from settings
+        const strategy = this.settings.nodePositionStrategy;
+        
+        if (this.debugMode) {
+            console.log("Valid nodes count:", validNodes.length);
+            console.log("Using positioning strategy:", strategy);
+        }
+        
+        // Explicitly implement each strategy instead of using helper methods
+        // This ensures we get distinct behavior for each strategy
+        if (strategy === "center") {
+            if (this.debugMode) console.log("Using CENTER strategy");
+            
+            // Calculate the bounding box of all nodes
+            let minX = Infinity;
+            let minY = Infinity;
+            let maxX = -Infinity;
+            let maxY = -Infinity;
+
+            for (const node of validNodes) {
+                // Get node dimensions (fallback to defaults if not specified)
+                const width = 400;  // Default width
+                const height = 200; // Default height
+                
+                // Calculate boundaries
+                const halfWidth = width / 2;
+                const halfHeight = height / 2;
+                
+                minX = Math.min(minX, node.position.x - halfWidth);
+                minY = Math.min(minY, node.position.y - halfHeight);
+                maxX = Math.max(maxX, node.position.x + halfWidth);
+                maxY = Math.max(maxY, node.position.y + halfHeight);
+            }
+
+            // Find the center of the bounding box
+            const centerX = Math.round((minX + maxX) / 2);
+            const centerY = Math.round((minY + maxY) / 2);
+
+            // Add small random offset
+            const offsetX = Math.floor(Math.random() * 100) - 50;
+            const offsetY = Math.floor(Math.random() * 100) - 50;
+
+            position = {
+                x: centerX + offsetX,
+                y: centerY + offsetY,
+            };
+            
+            if (this.debugMode) console.log("CENTER position calculated:", position);
+        } 
+        else if (strategy === "right") {
+            if (this.debugMode) console.log("Using RIGHT strategy");
+            
+            // Find the rightmost node
+            let rightmostNode = validNodes[0];
+            for (const node of validNodes) {
+                if (node.position.x > rightmostNode.position.x) {
+                    rightmostNode = node;
+                }
+            }
+
+            // Get the configured gap
+            const gap = this.settings.rightPositionGap || 300; // Fallback to 300 if not set
+            
+            position = {
+                x: rightmostNode.position.x + gap,
+                y: rightmostNode.position.y,
+            };
+            
+            if (this.debugMode) console.log("RIGHT position calculated:", position);
+        } 
+        else {
+            // Default to "smart" strategy
+            if (this.debugMode) console.log("Using SMART strategy");
+            
+            // For small canvases, use center
+            if (validNodes.length < 5) {
+                if (this.debugMode) console.log("Few nodes, using center approach");
+                
+                // Calculate average position
+                let totalX = 0;
+                let totalY = 0;
+                
+                for (const node of validNodes) {
+                    totalX += node.position.x;
+                    totalY += node.position.y;
+                }
+                
+                const avgX = Math.round(totalX / validNodes.length);
+                const avgY = Math.round(totalY / validNodes.length);
+                
+                // Add offset for variety
+                const offsetX = Math.floor(Math.random() * 100) - 50;
+                const offsetY = Math.floor(Math.random() * 100) - 50;
+                
+                position = {
+                    x: avgX + offsetX,
+                    y: avgY + offsetY
+                };
+            } else {
+                // For larger canvases, find activity clusters
+                if (this.debugMode) console.log("Finding activity clusters for smart positioning");
+                
+                // Sort nodes by z-index as proxy for recency
+                const sortedNodes = [...validNodes].sort((a, b) => {
+                    const zA = a.zIndex !== undefined ? a.zIndex : 0;
+                    const zB = b.zIndex !== undefined ? b.zIndex : 0;
+                    return zB - zA; // Descending order
+                });
+                
+                // Use the 3 most recent nodes to determine active area
+                const recentNodes = sortedNodes.slice(0, Math.min(3, sortedNodes.length));
+                
+                let totalX = 0;
+                let totalY = 0;
+                
+                for (const node of recentNodes) {
+                    totalX += node.position.x;
+                    totalY += node.position.y;
+                }
+                
+                const baseX = Math.round(totalX / recentNodes.length);
+                const baseY = Math.round(totalY / recentNodes.length);
+                
+                // Add offset for variety but keep it relatively small
+                const offsetX = Math.floor(Math.random() * 75);
+                const offsetY = Math.floor(Math.random() * 75);
+                
+                position = {
+                    x: baseX + offsetX,
+                    y: baseY + offsetY
+                };
+            }
+            
+            if (this.debugMode) console.log("SMART position calculated:", position);
+        }
+        
+        // Store the position for group placement
+        if (this.settings.groupPlacementEnabled) {
+            this.lastGroupPosition = position;
+            this.lastGroupPlacementTime = Date.now();
+            
+            if (this.debugMode) {
+                console.log("Setting new group position:", position);
             }
         }
-
-        // Position the new node to the right of the rightmost node
-        // with a small gap
-        return {
-            x: rightmostNode.position.x + 500,
-            y: rightmostNode.position.y,
-        };
+        
+        if (this.debugMode) {
+            console.log("Final position:", position);
+        }
+        
+        return position;
     }
 
     /**
@@ -733,19 +914,36 @@ export default class Main extends Plugin {
         sourceFile: TFile,
         blockId = "",
     ): Promise<void> {
+        // Temporarily enable debug mode for troubleshooting positioning
+        const previousDebugMode = this.debugMode;
+        this.debugMode = true;
+        console.log("=== START AddToCanvas ===");
+        console.log("Format:", format);
+        console.log("Content:", content.substring(0, 50) + (content.length > 50 ? "..." : ""));
+        console.log("Current positioning strategy:", this.settings.nodePositionStrategy);
+        
         if (!this.selectedCanvas) {
-            new Notice("No canvas selected");
+            new Notice("No canvas file selected.");
+            this.selectCanvasFile();
+            this.debugMode = previousDebugMode;
             return;
         }
 
-        // Read the canvas file
-        let canvasContent: string;
         try {
-            canvasContent = await this.app.vault.read(this.selectedCanvas);
-
-            // Check if the canvas content is empty or too short to be valid JSON
-            if (!canvasContent || canvasContent.trim().length < 2) {
-                // Initialize with empty canvas structure
+            // Read and parse canvas content
+            let canvasContent = await this.app.vault.read(this.selectedCanvas);
+            
+            // Log to verify canvas content was read correctly
+            console.log("Successfully read canvas file");
+            
+            let canvasData: CanvasData;
+            try {
+                canvasData = JSON.parse(canvasContent);
+                console.log("Successfully parsed canvas data");
+            } catch (e) {
+                // Handle case where canvas might be empty or invalid
+                console.log("Failed to parse canvas data, creating new structure");
+                canvasData = { nodes: [], edges: [] };
                 canvasContent = JSON.stringify({ nodes: [], edges: [] });
 
                 // Save the initialized structure to the file
@@ -754,156 +952,141 @@ export default class Main extends Plugin {
                     (data) => canvasContent,
                 );
             }
-        } catch (error) {
-            new Notice(
-                `Failed to read canvas file: ${error.message || "Unknown error"}`,
-            );
-            return;
-        }
+            
+            // Determine the position for the new node
+            const newNodePosition = this.calculateNewNodePosition(canvasData.nodes);
+            console.log("New node position:", newNodePosition);
+            
+            // Generate the content to add based on format
+            let textContent = content;
 
-        let canvasData: CanvasData;
+            // Determine node dimensions based on format
+            let nodeWidth: number;
+            let nodeHeight: number;
 
-        try {
-            canvasData = JSON.parse(canvasContent);
+            if (format === "link" || format === "embed") {
+                // Create a link or embed with the block ID
+                let linkText = "";
 
-            // Check and initialize data structure if needed
-            if (!canvasData.nodes) canvasData.nodes = [];
-            if (!canvasData.edges) canvasData.edges = [];
-        } catch (error) {
-            new Notice(
-                "Error parsing canvas file. It may not be in the expected format.",
-            );
+                if (format === "link") {
+                    // Use a simpler format for block links without the display text part
+                    linkText = `[[${sourceFile.basename}#^${blockId}]]`;
+                } else if (format === "embed") {
+                    // Use the file basename instead of the full path
+                    linkText = `![[${sourceFile.basename}#^${blockId}]]`;
 
-            // Try to recover by creating a new canvas structure
-            canvasData = { nodes: [], edges: [] };
-        }
+                    // For block embeds of open tasks, check if we need to modify the source file
+                    // This ensures the embedded content will include the appended text
+                    if (
+                        content.trim().startsWith("- [ ]") &&
+                        this.settings.appendTextToOpenTasks
+                    ) {
+                        try {
+                            // Read the file content to check for the block ID
+                            const fileContent =
+                                await this.app.vault.read(sourceFile);
+                            const lines = fileContent.split("\n");
 
-        // Determine the position for the new node
-        const newNodePosition = this.calculateNewNodePosition(canvasData.nodes);
-
-        // Generate the content to add based on format
-        let textContent = content;
-
-        // Determine node dimensions based on format
-        let nodeWidth: number;
-        let nodeHeight: number;
-
-        if (format === "link" || format === "embed") {
-            // Create a link or embed with the block ID
-            let linkText = "";
-
-            if (format === "link") {
-                // Use a simpler format for block links without the display text part
-                linkText = `[[${sourceFile.basename}#^${blockId}]]`;
-            } else if (format === "embed") {
-                // Use the file basename instead of the full path
-                linkText = `![[${sourceFile.basename}#^${blockId}]]`;
-
-                // For block embeds of open tasks, check if we need to modify the source file
-                // This ensures the embedded content will include the appended text
-                if (
-                    content.trim().startsWith("- [ ]") &&
-                    this.settings.appendTextToOpenTasks
-                ) {
-                    try {
-                        // Read the file content to check for the block ID
-                        const fileContent =
-                            await this.app.vault.read(sourceFile);
-                        const lines = fileContent.split("\n");
-
-                        // Find the line with this block ID
-                        for (let i = 0; i < lines.length; i++) {
-                            if (lines[i].includes(`^${blockId}`)) {
-                                const lineWithoutBlockId = lines[i].replace(
-                                    ` ^${blockId}`,
-                                    "",
-                                );
-
-                                // Check if we need to append the custom text
-                                if (
-                                    !lineWithoutBlockId.includes(
-                                        this.settings.openTaskAppendText,
-                                    )
-                                ) {
-                                    // Modify the line to include the appended text
-                                    const modifiedLine =
-                                        lineWithoutBlockId.trimEnd() +
-                                        " " +
-                                        this.settings.openTaskAppendText +
-                                        ` ^${blockId}`;
-
-                                    lines[i] = modifiedLine;
-
-                                    // Update the file
-                                    await this.app.vault.process(
-                                        sourceFile,
-                                        (data) => lines.join("\n"),
+                            // Find the line with this block ID
+                            for (let i = 0; i < lines.length; i++) {
+                                if (lines[i].includes(`^${blockId}`)) {
+                                    const lineWithoutBlockId = lines[i].replace(
+                                        ` ^${blockId}`,
+                                        "",
                                     );
+
+                                    // Check if we need to append the custom text
+                                    if (
+                                        !lineWithoutBlockId.includes(
+                                            this.settings.openTaskAppendText,
+                                        )
+                                    ) {
+                                        // Modify the line to include the appended text
+                                        const modifiedLine =
+                                            lineWithoutBlockId.trimEnd() +
+                                            " " +
+                                            this.settings.openTaskAppendText +
+                                            ` ^${blockId}`;
+
+                                        lines[i] = modifiedLine;
+
+                                        // Update the file
+                                        await this.app.vault.process(
+                                            sourceFile,
+                                            (data) => lines.join("\n"),
+                                        );
+                                    }
+                                    break;
                                 }
-                                break;
                             }
+                        } catch (error) {
+                            console.error(
+                                "Error updating source file for block embed:",
+                                error,
+                            );
                         }
-                    } catch (error) {
-                        console.error(
-                            "Error updating source file for block embed:",
-                            error,
-                        );
                     }
                 }
-            }
 
-            textContent = linkText;
+                textContent = linkText;
 
-            // Append timestamp if enabled
-            if (this.settings.appendTimestampToLinks) {
-                const timestamp = moment().format(
-                    this.settings.appendTimestampFormat,
-                );
-                textContent += ` ${timestamp}`;
-            }
+                // Append timestamp if enabled
+                if (this.settings.appendTimestampToLinks) {
+                    const timestamp = moment().format(
+                        this.settings.appendTimestampFormat,
+                    );
+                    textContent += ` ${timestamp}`;
+                }
 
-            // Use appropriate node dimensions based on format
-            if (format === "link") {
-                // Use link node dimensions for links
-                nodeWidth = this.settings.linkNodeWidth;
-                nodeHeight = this.settings.linkNodeHeight;
+                // Use appropriate node dimensions based on format
+                if (format === "link") {
+                    // Use link node dimensions for links
+                    nodeWidth = this.settings.linkNodeWidth;
+                    nodeHeight = this.settings.linkNodeHeight;
+                } else {
+                    // Use content node dimensions for embeds
+                    nodeWidth = this.settings.contentNodeWidth;
+                    nodeHeight = this.settings.contentNodeHeight;
+                }
             } else {
-                // Use content node dimensions for embeds
+                // Plain text - use content as is without appending text to open tasks
+                // Don't modify the content for the canvas, only for source files
+
+                // Use content node dimensions
                 nodeWidth = this.settings.contentNodeWidth;
                 nodeHeight = this.settings.contentNodeHeight;
             }
-        } else {
-            // Plain text - use content as is without appending text to open tasks
-            // Don't modify the content for the canvas, only for source files
 
-            // Use content node dimensions
-            nodeWidth = this.settings.contentNodeWidth;
-            nodeHeight = this.settings.contentNodeHeight;
-        }
+            // Create the new node
+            const newNode: CanvasTextData = {
+                id: this.generateNodeId(),
+                type: "text",
+                x: newNodePosition.x,
+                y: newNodePosition.y,
+                width: nodeWidth,
+                height: nodeHeight,
+                text: textContent,
+            };
 
-        // Create the new node
-        const newNode: CanvasTextData = {
-            id: this.generateNodeId(),
-            type: "text",
-            x: newNodePosition.x,
-            y: newNodePosition.y,
-            width: nodeWidth,
-            height: nodeHeight,
-            text: textContent,
-        };
+            // Add the new node to the canvas
+            canvasData.nodes.push(newNode);
 
-        // Add the new node to the canvas
-        canvasData.nodes.push(newNode);
-
-        // Save the modified canvas
-        try {
-            await this.app.vault.process(this.selectedCanvas, (data) =>
-                JSON.stringify(canvasData, null, 2),
-            );
+            // Save the modified canvas
+            try {
+                await this.app.vault.process(this.selectedCanvas, (data) =>
+                    JSON.stringify(canvasData, null, 2),
+                );
+                console.log("Canvas updated successfully");
+            } catch (error) {
+                new Notice(
+                    `Failed to save canvas: ${error.message || "Unknown error"}`,
+                );
+                console.error("Error saving canvas:", error);
+            }
         } catch (error) {
-            new Notice(
-                `Failed to save canvas: ${error.message || "Unknown error"}`,
-            );
+            console.error("Error adding to canvas:", error);
+        } finally {
+            this.debugMode = previousDebugMode;
         }
     }
 

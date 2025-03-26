@@ -162,6 +162,77 @@ export class SettingsTab extends PluginSettingTab {
             )
             .setHeading();
 
+        // Node positioning strategy
+        new Setting(containerEl)
+            .setName("Node positioning")
+            .setDesc(
+                "Choose how new nodes are positioned when added to the canvas"
+            )
+            .setHeading();
+
+        new Setting(containerEl)
+            .setName("Positioning strategy")
+            .setDesc("Select how new nodes are positioned on the canvas")
+            .addDropdown((dropdown) => {
+                dropdown
+                    .addOption("smart", "Smart placement")
+                    .addOption("center", "Center of canvas")
+                    .addOption("right", "Right of existing nodes")
+                    .setValue(this.plugin.settings.nodePositionStrategy)
+                    .onChange(async (value: "smart" | "center" | "right") => {
+                        this.plugin.settings.nodePositionStrategy = value;
+                        await this.plugin.saveSettings();
+                        this.display(); // Refresh to show/hide strategy-specific settings
+                    });
+            });
+
+        // Only show right positioning gap if right strategy is selected
+        if (this.plugin.settings.nodePositionStrategy === "right") {
+            new Setting(containerEl)
+                .setName("Right positioning gap")
+                .setDesc("Distance in pixels to place new nodes from the rightmost node")
+                .addSlider(slider => {
+                    slider
+                        .setLimits(100, 1000, 50)
+                        .setValue(this.plugin.settings.rightPositionGap)
+                        .setDynamicTooltip()
+                        .onChange(async (value) => {
+                            this.plugin.settings.rightPositionGap = value;
+                            await this.plugin.saveSettings();
+                        });
+                });
+        }
+
+        // Group placement settings
+        new Setting(containerEl)
+            .setName("Group placement")
+            .setDesc("Maintain consistent positioning for nodes added in sequence")
+            .addToggle(toggle => {
+                toggle
+                    .setValue(this.plugin.settings.groupPlacementEnabled)
+                    .onChange(async (value) => {
+                        this.plugin.settings.groupPlacementEnabled = value;
+                        await this.plugin.saveSettings();
+                        this.display(); // Refresh to show/hide related settings
+                    });
+            });
+
+        if (this.plugin.settings.groupPlacementEnabled) {
+            new Setting(containerEl)
+                .setName("Group placement timeout")
+                .setDesc("Time in seconds before resetting the group placement (how long to consider sequential additions as a group)")
+                .addSlider(slider => {
+                    slider
+                        .setLimits(1, 30, 1)
+                        .setValue(this.plugin.settings.groupPlacementTimeout / 1000)
+                        .setDynamicTooltip()
+                        .onChange(async (value) => {
+                            this.plugin.settings.groupPlacementTimeout = value * 1000;
+                            await this.plugin.saveSettings();
+                        });
+                });
+        }
+
         // Link and block link node size settings
         new Setting(containerEl)
             .setName("Link nodes (note links and block links)")
