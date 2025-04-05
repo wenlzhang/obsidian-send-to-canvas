@@ -47,7 +47,7 @@ export class BlockReferenceUtils {
             lines[position.line] = line + ` ^${blockId}`;
 
             // Update the file
-            await vault.modify(file, lines.join("\n"));
+            await vault.process(file, (data) => lines.join("\n"));
 
             return blockId;
         } catch (error) {

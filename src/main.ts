@@ -170,11 +170,9 @@ export default class Main extends Plugin {
                     // Only show notification and update UI if rememberLastCanvas is enabled
                     if (this.settings.rememberLastCanvas) {
                         // Update the status bar with the loaded canvas
-                        setTimeout(() => {
-                            this.updateStatusBar();
-                            // Show a subtle notification that a canvas was automatically selected
-                            new Notice(`Canvas loaded: ${file.basename}`, 2000);
-                        }, 500);
+                        this.updateStatusBar();
+                        // Show a subtle notification that a canvas was automatically selected
+                        new Notice(`Canvas loaded: ${file.basename}`, 2000);
                     }
                 } else {
                     // If the file no longer exists, clear the saved path
@@ -296,23 +294,13 @@ export default class Main extends Plugin {
                     textToSend, // Use the original text to find the right position
                 );
 
-                // If a block ID was successfully added, get the updated line content from the file
+                // If a block ID was successfully added, get the updated line content
                 if (blockId) {
-                    // Get the updated content from the file
-                    const fileContent = await this.app.vault.read(currentFile);
-                    const lines = fileContent.split("\n");
-
-                    // Find the line containing the block ID
-                    for (let i = 0; i < lines.length; i++) {
-                        if (lines[i].includes(`^${blockId}`)) {
-                            // Extract the content without the block ID
-                            contentToSend = lines[i].replace(
-                                ` ^${blockId}`,
-                                "",
-                            );
-                            break;
-                        }
-                    }
+                    // Get the updated content directly from the editor
+                    const updatedLine = editor.getLine(originalCursor.line);
+                    
+                    // Extract the content without the block ID
+                    contentToSend = updatedLine.replace(` ^${blockId}`, "");
                 }
             }
 
@@ -455,67 +443,8 @@ export default class Main extends Plugin {
 
     getCanvasFiles(): TFile[] {
         const files = this.app.vault.getFiles();
-
-        // Try the standard way first - files with .canvas extension
-        let canvasFiles = files.filter((file) => file.extension === "canvas");
-
-        // If no canvas files were found, try alternative detection methods
-        if (canvasFiles.length === 0) {
-            // Try alternative detection methods:
-            // 1. Check for files with "canvas" in the name
-            const nameBasedCanvasFiles = files.filter((f) =>
-                f.name.toLowerCase().includes("canvas"),
-            );
-
-            if (nameBasedCanvasFiles.length > 0) {
-                canvasFiles = nameBasedCanvasFiles;
-            }
-
-            // 2. Check if there's a special canvas folder
-            const canvasFolders = this.app.vault
-                .getAllLoadedFiles()
-                .filter(
-                    (f) =>
-                        f.name.toLowerCase().includes("canvas") &&
-                        !(f instanceof TFile),
-                );
-
-            if (canvasFolders.length > 0) {
-                // Look for files in these folders
-                const filesInCanvasFolders = files.filter((f) =>
-                    canvasFolders.some((folder) =>
-                        f.path.startsWith(folder.path + "/"),
-                    ),
-                );
-
-                if (filesInCanvasFolders.length > 0) {
-                    if (this.debugMode) {
-                        console.log(
-                            "Found files in canvas folders:",
-                            filesInCanvasFolders.map((f) => f.path),
-                        );
-                    }
-                    // Add these to our canvas files if we haven't found any yet
-                    if (canvasFiles.length === 0) {
-                        canvasFiles = filesInCanvasFolders;
-                    }
-                }
-            }
-
-            // 3. Check for any JSON files that might be canvas files
-            const jsonFiles = files.filter((f) => f.extension === "json");
-            if (jsonFiles.length > 0 && canvasFiles.length === 0) {
-                if (this.debugMode) {
-                    console.log(
-                        "Found JSON files that might be canvas files:",
-                        jsonFiles.map((f) => f.path),
-                    );
-                }
-                // We don't automatically use these, but log them for debugging
-            }
-        }
-
-        return canvasFiles;
+        // Filter for files with .canvas extension
+        return files.filter((file) => file.extension === "canvas");
     }
 
     // Helper method to find a canvas file by name or path
@@ -526,34 +455,17 @@ export default class Main extends Plugin {
             return fileByPath;
         }
 
-        // If that fails, extract the filename
+        // If that fails, extract the filename and try to find by name
         const fileName = nameOrPath.split("/").pop() || nameOrPath;
         const baseNameWithoutExt = fileName.replace(/\.canvas$/, "");
 
-        // Try to find the file by name using the vault's getAbstractFileByPath with different variations
-        // This avoids iterating through all files multiple times
-        const exactNameFile = this.app.vault.getAbstractFileByPath(
-            `${baseNameWithoutExt}.canvas`,
-        );
+        // Use getAbstractFileByPath with the inferred path - more efficient
+        const exactNameFile = this.app.vault.getAbstractFileByPath(`${baseNameWithoutExt}.canvas`);
         if (exactNameFile instanceof TFile) {
             return exactNameFile;
         }
 
-        // As a last resort, get all canvas files and search through them
-        const allCanvasFiles = this.getCanvasFiles();
-
-        // Try exact name match
-        const matchingFile = allCanvasFiles.find(
-            (f) =>
-                f.name === fileName ||
-                f.name.toLowerCase() === fileName.toLowerCase() ||
-                f.basename === baseNameWithoutExt ||
-                f.basename.toLowerCase() === baseNameWithoutExt.toLowerCase() ||
-                f.name.includes(baseNameWithoutExt) ||
-                f.name.toLowerCase().includes(baseNameWithoutExt.toLowerCase()),
-        );
-
-        return matchingFile || null;
+        return null;
     }
 
     /**
@@ -722,7 +634,9 @@ export default class Main extends Plugin {
 
             return blockId;
         } catch (error) {
-            console.error("Error adding block ID to selection:", error);
+            if (this.debugMode) {
+                console.error("Error adding block ID to selection:", error);
+            }
             return "";
         }
     }
@@ -755,6 +669,9 @@ export default class Main extends Plugin {
                 );
             }
         } catch (error) {
+            if (this.debugMode) {
+                console.error("Error reading canvas file:", error);
+            }
             new Notice(
                 `Failed to read canvas file: ${error.message || "Unknown error"}`,
             );
@@ -770,6 +687,9 @@ export default class Main extends Plugin {
             if (!canvasData.nodes) canvasData.nodes = [];
             if (!canvasData.edges) canvasData.edges = [];
         } catch (error) {
+            if (this.debugMode) {
+                console.error("Error parsing canvas file:", error);
+            }
             new Notice(
                 "Error parsing canvas file. It may not be in the expected format.",
             );
@@ -844,10 +764,12 @@ export default class Main extends Plugin {
                             }
                         }
                     } catch (error) {
-                        console.error(
-                            "Error updating source file for block embed:",
-                            error,
-                        );
+                        if (this.debugMode) {
+                            console.error(
+                                "Error updating source file for block embed:",
+                                error,
+                            );
+                        }
                     }
                 }
             }
@@ -901,6 +823,9 @@ export default class Main extends Plugin {
                 JSON.stringify(canvasData, null, 2),
             );
         } catch (error) {
+            if (this.debugMode) {
+                console.error("Error saving canvas:", error);
+            }
             new Notice(
                 `Failed to save canvas: ${error.message || "Unknown error"}`,
             );
@@ -927,6 +852,9 @@ export default class Main extends Plugin {
                 );
             }
         } catch (error) {
+            if (this.debugMode) {
+                console.error("Error reading canvas file:", error);
+            }
             new Notice(
                 `Failed to read canvas file: ${error.message || "Unknown error"}`,
             );
@@ -942,6 +870,9 @@ export default class Main extends Plugin {
             if (!canvasData.nodes) canvasData.nodes = [];
             if (!canvasData.edges) canvasData.edges = [];
         } catch (error) {
+            if (this.debugMode) {
+                console.error("Error parsing canvas file:", error);
+            }
             new Notice(
                 "Error parsing canvas file. It may not be in the expected format.",
             );
@@ -975,6 +906,9 @@ export default class Main extends Plugin {
 
             new Notice(`Note sent to canvas: ${this.selectedCanvas.name}`);
         } catch (error) {
+            if (this.debugMode) {
+                console.error("Error saving canvas:", error);
+            }
             new Notice(
                 `Failed to save canvas: ${error.message || "Unknown error"}`,
             );
@@ -1001,6 +935,9 @@ export default class Main extends Plugin {
                 );
             }
         } catch (error) {
+            if (this.debugMode) {
+                console.error("Error reading canvas file:", error);
+            }
             new Notice(
                 `Failed to read canvas file: ${error.message || "Unknown error"}`,
             );
@@ -1016,6 +953,9 @@ export default class Main extends Plugin {
             if (!canvasData.nodes) canvasData.nodes = [];
             if (!canvasData.edges) canvasData.edges = [];
         } catch (error) {
+            if (this.debugMode) {
+                console.error("Error parsing canvas file:", error);
+            }
             new Notice(
                 "Error parsing canvas file. It may not be in the expected format.",
             );
@@ -1058,6 +998,9 @@ export default class Main extends Plugin {
                 JSON.stringify(canvasData, null, 2),
             );
         } catch (error) {
+            if (this.debugMode) {
+                console.error("Error saving canvas:", error);
+            }
             new Notice(
                 `Failed to save canvas: ${error.message || "Unknown error"}`,
             );
@@ -1067,6 +1010,7 @@ export default class Main extends Plugin {
     updateStatusBar() {
         if (!this.statusBarItem) return;
 
+        // Empty the element but don't remove the event listener
         this.statusBarItem.empty();
 
         if (this.selectedCanvas) {
