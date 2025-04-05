@@ -298,7 +298,7 @@ export default class Main extends Plugin {
                 if (blockId) {
                     // Get the updated content directly from the editor
                     const updatedLine = editor.getLine(originalCursor.line);
-                    
+
                     // Extract the content without the block ID
                     contentToSend = updatedLine.replace(` ^${blockId}`, "");
                 }
@@ -460,7 +460,9 @@ export default class Main extends Plugin {
         const baseNameWithoutExt = fileName.replace(/\.canvas$/, "");
 
         // Use getAbstractFileByPath with the inferred path - more efficient
-        const exactNameFile = this.app.vault.getAbstractFileByPath(`${baseNameWithoutExt}.canvas`);
+        const exactNameFile = this.app.vault.getAbstractFileByPath(
+            `${baseNameWithoutExt}.canvas`,
+        );
         if (exactNameFile instanceof TFile) {
             return exactNameFile;
         }
