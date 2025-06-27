@@ -57,8 +57,11 @@ export default class Main extends Plugin {
         this.addCommand({
             id: "select-canvas-file",
             name: "Select a Canvas file",
-            callback: () => {
+            checkCallback: (checking: boolean) => {
+                // Always available
+                if (checking) return true;
                 this.selectCanvasFile();
+                return true;
             },
         });
 
@@ -66,8 +69,11 @@ export default class Main extends Plugin {
         this.addCommand({
             id: "send-block-text",
             name: "Send block text",
-            editorCallback: (editor: Editor) => {
+            editorCheckCallback: (checking: boolean, editor: Editor) => {
+                // Command should be available only if a Canvas is selected
+                if (checking) return this.selectedCanvas !== null;
                 this.sendSelectionToCanvas(editor, "plain");
+                return true;
             },
         });
 
@@ -75,8 +81,11 @@ export default class Main extends Plugin {
         this.addCommand({
             id: "send-block-link",
             name: "Send block link",
-            editorCallback: (editor: Editor) => {
+            editorCheckCallback: (checking: boolean, editor: Editor) => {
+                // Command should be available only if a Canvas is selected
+                if (checking) return this.selectedCanvas !== null;
                 this.sendSelectionToCanvas(editor, "link");
+                return true;
             },
         });
 
@@ -84,8 +93,11 @@ export default class Main extends Plugin {
         this.addCommand({
             id: "send-block-embed",
             name: "Send block embed",
-            editorCallback: (editor: Editor) => {
+            editorCheckCallback: (checking: boolean, editor: Editor) => {
+                // Command should be available only if a Canvas is selected
+                if (checking) return this.selectedCanvas !== null;
                 this.sendSelectionToCanvas(editor, "embed");
+                return true;
             },
         });
 
@@ -93,8 +105,12 @@ export default class Main extends Plugin {
         this.addCommand({
             id: "send-note-link",
             name: "Send note link",
-            callback: () => {
+            checkCallback: (checking: boolean) => {
+                // Command should be available only if a Canvas is selected and we're in a markdown view
+                const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+                if (checking) return this.selectedCanvas !== null && activeView !== null;
                 this.sendNoteAsLinkToCanvas();
+                return true;
             },
         });
 
@@ -102,8 +118,12 @@ export default class Main extends Plugin {
         this.addCommand({
             id: "send-note-embed",
             name: "Send note embed",
-            callback: () => {
+            checkCallback: (checking: boolean) => {
+                // Command should be available only if a Canvas is selected and we're in a markdown view
+                const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+                if (checking) return this.selectedCanvas !== null && activeView !== null;
                 this.sendCurrentNoteToCanvas();
+                return true;
             },
         });
 
