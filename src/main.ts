@@ -1045,11 +1045,11 @@ export default class Main extends Plugin {
         if (filename.length <= maxLength) {
             return filename;
         }
-        
+
         // Truncate and add ellipsis
-        return filename.slice(0, maxLength) + '…';
+        return filename.slice(0, maxLength) + "…";
     }
-    
+
     updateStatusBar() {
         if (!this.statusBarItem) return;
 
@@ -1059,18 +1059,19 @@ export default class Main extends Plugin {
         if (this.selectedCanvas) {
             const truncatedName = this.truncateFilename(
                 this.selectedCanvas.basename,
-                this.settings.statusBarMaxFilenameLength
+                this.settings.statusBarMaxFilenameLength,
             );
-            
-            this.statusBarItem.setText(
-                `Canvas: ${truncatedName}`,
-            );
+
+            this.statusBarItem.setText(`Canvas: ${truncatedName}`);
             this.statusBarItem.addClass("has-canvas-selected");
             this.statusBarItem.removeClass("no-canvas-selected");
-            
+
             // Add tooltip with the full filename if truncated
             if (truncatedName !== this.selectedCanvas.basename) {
-                this.statusBarItem.setAttribute("aria-label", this.selectedCanvas.basename);
+                this.statusBarItem.setAttribute(
+                    "aria-label",
+                    this.selectedCanvas.basename,
+                );
             } else {
                 this.statusBarItem.removeAttribute("aria-label");
             }

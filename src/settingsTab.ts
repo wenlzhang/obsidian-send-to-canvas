@@ -267,25 +267,28 @@ export class SettingsTab extends PluginSettingTab {
                         }
                     }),
             );
-        
+
         // Status bar
         new Setting(containerEl)
             .setName("Status bar")
             .setDesc("Customize the status bar display")
             .setHeading();
-        
+
         new Setting(containerEl)
             .setName("Maximum Canvas filename length")
-            .setDesc("Maximum number of characters to display for Canvas filenames in the status bar. Longer filenames will be truncated with an ellipsis.")
-            .addSlider(slider => slider
-                .setLimits(5, 50, 5)
-                .setValue(this.plugin.settings.statusBarMaxFilenameLength)
-                .setDynamicTooltip()
-                .onChange(async (value) => {
-                    this.plugin.settings.statusBarMaxFilenameLength = value;
-                    await this.plugin.saveSettings();
-                    this.plugin.updateStatusBar(); // Update immediately to show effect
-                })
+            .setDesc(
+                "Maximum number of characters to display for Canvas filenames in the status bar. Longer filenames will be truncated with an ellipsis.",
+            )
+            .addSlider((slider) =>
+                slider
+                    .setLimits(5, 50, 5)
+                    .setValue(this.plugin.settings.statusBarMaxFilenameLength)
+                    .setDynamicTooltip()
+                    .onChange(async (value) => {
+                        this.plugin.settings.statusBarMaxFilenameLength = value;
+                        await this.plugin.saveSettings();
+                        this.plugin.updateStatusBar(); // Update immediately to show effect
+                    }),
             );
     }
 }

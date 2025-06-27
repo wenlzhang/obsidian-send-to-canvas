@@ -14,7 +14,7 @@ export interface SendToCanvasSettings {
 
     // Status bar customization
     statusBarMaxFilenameLength: number; // Maximum number of characters to display for Canvas filenames in status bar
-    
+
     // Node size settings
     linkNodeWidth: number;
     linkNodeHeight: number;
