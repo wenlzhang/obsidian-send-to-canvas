@@ -107,8 +107,10 @@ export default class Main extends Plugin {
             name: "Send note link",
             checkCallback: (checking: boolean) => {
                 // Command should be available only if a Canvas is selected and we're in a markdown view
-                const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-                if (checking) return this.selectedCanvas !== null && activeView !== null;
+                const activeView =
+                    this.app.workspace.getActiveViewOfType(MarkdownView);
+                if (checking)
+                    return this.selectedCanvas !== null && activeView !== null;
                 this.sendNoteAsLinkToCanvas();
                 return true;
             },
@@ -120,8 +122,10 @@ export default class Main extends Plugin {
             name: "Send note embed",
             checkCallback: (checking: boolean) => {
                 // Command should be available only if a Canvas is selected and we're in a markdown view
-                const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-                if (checking) return this.selectedCanvas !== null && activeView !== null;
+                const activeView =
+                    this.app.workspace.getActiveViewOfType(MarkdownView);
+                if (checking)
+                    return this.selectedCanvas !== null && activeView !== null;
                 this.sendCurrentNoteToCanvas();
                 return true;
             },
@@ -327,7 +331,9 @@ export default class Main extends Plugin {
             // Restore the original cursor position
             editor.setCursor(originalCursor);
 
-            new Notice(`Selection sent to Canvas: ${this.selectedCanvas.basename}`);
+            new Notice(
+                `Selection sent to Canvas: ${this.selectedCanvas.basename}`,
+            );
         } catch (error) {
             console.error("Error sending selection to Canvas:", error);
             new Notice("Error sending selection to Canvas");
@@ -389,7 +395,9 @@ export default class Main extends Plugin {
 
         try {
             await this.addNoteAsLinkToCanvas(currentFile);
-            new Notice(`Note link sent to Canvas: ${this.selectedCanvas.basename}`);
+            new Notice(
+                `Note link sent to Canvas: ${this.selectedCanvas.basename}`,
+            );
         } catch (error) {
             new Notice(
                 `Failed to send note link to Canvas: ${
