@@ -1039,7 +1039,7 @@ export default class Main extends Plugin {
             this.statusBarItem.addClass("has-canvas-selected");
             this.statusBarItem.removeClass("no-canvas-selected");
         } else {
-            this.statusBarItem.setText("No Canvas Selected");
+            this.statusBarItem.setText("No Canvas selected");
             this.statusBarItem.addClass("no-canvas-selected");
             this.statusBarItem.removeClass("has-canvas-selected");
         }
