@@ -12,6 +12,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.3.2] - 2025-06-27
+
+### Changes
+
+- Address review comments
+- Address review comments
+- Address review comments
+- Address review comments
+- Address review comments
+- Improve code format
+
 ## [0.3.1] - 2025-04-05
 
 ### Changes
