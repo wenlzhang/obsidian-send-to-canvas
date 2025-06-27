@@ -13,6 +13,7 @@ export interface SendToCanvasSettings {
     openTaskAppendText: string;
 
     // Status bar customization
+    truncateFilenames: boolean; // Whether to truncate Canvas filenames in the status bar
     statusBarMaxFilenameLength: number; // Maximum number of characters to display for Canvas filenames in status bar
 
     // Node size settings
@@ -37,6 +38,7 @@ export const DEFAULT_SETTINGS: SendToCanvasSettings = {
     openTaskAppendText: "[l:: #Canvas ]",
 
     // Default status bar customization
+    truncateFilenames: true, // Default to truncating filenames
     statusBarMaxFilenameLength: 20, // Default to 20 characters before truncation
 
     // Default node sizes

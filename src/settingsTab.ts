@@ -273,22 +273,36 @@ export class SettingsTab extends PluginSettingTab {
             .setName("Status bar")
             .setDesc("Customize the status bar display")
             .setHeading();
-
+        
+        // Toggle for truncating Canvas filenames
         new Setting(containerEl)
-            .setName("Maximum Canvas filename length")
-            .setDesc(
-                "Maximum number of characters to display for Canvas filenames in the status bar. Longer filenames will be truncated with an ellipsis.",
-            )
-            .addSlider((slider) =>
-                slider
-                    .setLimits(5, 50, 5)
+            .setName("Truncate Canvas filenames")
+            .setDesc("When enabled, Canvas filenames in the status bar will be truncated if they exceed the maximum length.")
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.truncateFilenames)
+                .onChange(async (value) => {
+                    this.plugin.settings.truncateFilenames = value;
+                    await this.plugin.saveSettings();
+                    this.display(); // Refresh to show/hide the slider
+                    this.plugin.updateStatusBar(); // Update immediately to show effect
+                })
+            );
+        
+        // Only show the slider if truncation is enabled
+        if (this.plugin.settings.truncateFilenames) {
+            new Setting(containerEl)
+                .setName("Maximum filename length")
+                .setDesc("Maximum number of characters to display for Canvas filenames in the status bar. Longer filenames will be truncated with an ellipsis.")
+                .addSlider(slider => slider
+                    .setLimits(5, 100, 5) // Increased to 100 to handle longer filenames
                     .setValue(this.plugin.settings.statusBarMaxFilenameLength)
                     .setDynamicTooltip()
                     .onChange(async (value) => {
                         this.plugin.settings.statusBarMaxFilenameLength = value;
                         await this.plugin.saveSettings();
                         this.plugin.updateStatusBar(); // Update immediately to show effect
-                    }),
-            );
+                    })
+                );
+        }
     }
 }
