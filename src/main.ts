@@ -1057,20 +1057,25 @@ export default class Main extends Plugin {
         this.statusBarItem.empty();
 
         if (this.selectedCanvas) {
-            const truncatedName = this.truncateFilename(
-                this.selectedCanvas.basename,
-                this.settings.statusBarMaxFilenameLength,
-            );
+            let displayName = this.selectedCanvas.basename;
+            
+            // Only truncate if the setting is enabled
+            if (this.settings.truncateFilenames) {
+                displayName = this.truncateFilename(
+                    displayName,
+                    this.settings.statusBarMaxFilenameLength
+                );
+            }
 
-            this.statusBarItem.setText(`Canvas: ${truncatedName}`);
+            this.statusBarItem.setText(`Canvas: ${displayName}`);
             this.statusBarItem.addClass("has-canvas-selected");
             this.statusBarItem.removeClass("no-canvas-selected");
 
             // Add tooltip with the full filename if truncated
-            if (truncatedName !== this.selectedCanvas.basename) {
+            if (displayName !== this.selectedCanvas.basename) {
                 this.statusBarItem.setAttribute(
                     "aria-label",
-                    this.selectedCanvas.basename,
+                    this.selectedCanvas.basename
                 );
             } else {
                 this.statusBarItem.removeAttribute("aria-label");

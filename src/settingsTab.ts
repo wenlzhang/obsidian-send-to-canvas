@@ -274,8 +274,11 @@ export class SettingsTab extends PluginSettingTab {
             .setDesc("Customize the status bar display")
             .setHeading();
         
+        // Create a container for the truncation settings group
+        const truncateSettingContainer = containerEl.createDiv("truncate-settings-container");
+        
         // Toggle for truncating Canvas filenames
-        new Setting(containerEl)
+        new Setting(truncateSettingContainer)
             .setName("Truncate Canvas filenames")
             .setDesc("When enabled, Canvas filenames in the status bar will be truncated if they exceed the maximum length.")
             .addToggle(toggle => toggle
@@ -290,7 +293,11 @@ export class SettingsTab extends PluginSettingTab {
         
         // Only show the slider if truncation is enabled
         if (this.plugin.settings.truncateFilenames) {
-            new Setting(containerEl)
+            // Create an indented div for the slider to visually show it belongs to the toggle above
+            const sliderContainer = truncateSettingContainer.createDiv("truncate-slider-container");
+            sliderContainer.style.paddingLeft = "24px"; // Indent to show hierarchy
+            
+            new Setting(sliderContainer)
                 .setName("Maximum filename length")
                 .setDesc("Maximum number of characters to display for Canvas filenames in the status bar. Longer filenames will be truncated with an ellipsis.")
                 .addSlider(slider => slider
