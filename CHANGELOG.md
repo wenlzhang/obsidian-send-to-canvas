@@ -14,6 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.3.4] - 2025-06-27
+
+### Changes
+
+- Tune status bar length
+- Tune status bar length
+- Improve code format
+
 ## [0.3.3] - 2025-06-27
 
 ### Changes
