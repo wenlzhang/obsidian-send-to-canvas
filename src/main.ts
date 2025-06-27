@@ -37,9 +37,6 @@ export default class Main extends Plugin {
         this.statusBarItem = this.addStatusBarItem();
         this.statusBarItem.addClass("send-to-canvas-status");
 
-        // Make the status bar item clickable to select a new canvas
-        this.statusBarItem.style.cursor = "pointer";
-
         // Add the click event listener once during initialization
         this.statusBarItem.addEventListener("click", () => {
             this.selectCanvasFile();
@@ -117,7 +114,7 @@ export default class Main extends Plugin {
                 if (editor) {
                     // Always show the menu option - we'll handle empty selection in the handler
                     menu.addItem((item: MenuItem) => {
-                        item.setTitle("Send to canvas")
+                        item.setTitle("Send to Canvas")
                             .setIcon("send-to-graph")
                             .onClick((evt: MouseEvent | KeyboardEvent) => {
                                 // Store the current mouse position when the menu item is clicked

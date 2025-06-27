@@ -16,9 +16,9 @@ export class SettingsTab extends PluginSettingTab {
 
         // General settings
         new Setting(containerEl)
-            .setName("Remember last canvas")
+            .setName("Remember last Canvas")
             .setDesc(
-                "Remember the last selected canvas file when Obsidian restarts",
+                "Remember the last selected Canvas file when Obsidian restarts",
             )
             .addToggle((toggle) =>
                 toggle
@@ -35,7 +35,7 @@ export class SettingsTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName("Open task")
             .setDesc(
-                "Customize how open tasks (lines starting with '- [ ]') are sent to canvas. You can append custom text like tags or metadata to tasks.",
+                "Customize how open tasks (lines starting with '- [ ]') are sent to Canvas. You can append custom text like tags or metadata to tasks.",
             )
             .setHeading();
 
