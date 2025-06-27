@@ -14,7 +14,7 @@ export class SettingsTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-        // General settings
+        // General
         new Setting(containerEl)
             .setName("Remember last Canvas")
             .setDesc(
@@ -31,7 +31,7 @@ export class SettingsTab extends PluginSettingTab {
                     }),
             );
 
-        // Open task settings
+        // Open task
         new Setting(containerEl)
             .setName("Open task")
             .setDesc(
@@ -70,7 +70,7 @@ export class SettingsTab extends PluginSettingTab {
                 );
         }
 
-        // Block ID settings
+        // Block ID
         new Setting(containerEl)
             .setName("Block ID")
             .setDesc(
@@ -112,7 +112,7 @@ export class SettingsTab extends PluginSettingTab {
                 );
         }
 
-        // Link timestamp settings
+        // Link timestamp
         new Setting(containerEl)
             .setName("Link timestamp")
             .setDesc(
@@ -155,7 +155,7 @@ export class SettingsTab extends PluginSettingTab {
                 });
         }
 
-        // Canvas node size settings
+        // Canvas node size
         new Setting(containerEl)
             .setName("Canvas node size")
             .setDesc(
@@ -163,7 +163,7 @@ export class SettingsTab extends PluginSettingTab {
             )
             .setHeading();
 
-        // Link and block link node size settings
+        // Link and block link node size
         new Setting(containerEl)
             .setName("Link nodes (note links and block links)")
             .setDesc("Configure size settings for note links and block links");
@@ -198,7 +198,7 @@ export class SettingsTab extends PluginSettingTab {
                     }),
             );
 
-        // Content node size settings (block embeds and plain text)
+        // Content node size (block embeds and plain text)
         new Setting(containerEl)
             .setName("Content nodes (block embeds and plain text)")
             .setDesc("Configure size settings for block embeds and plain text");
@@ -233,7 +233,7 @@ export class SettingsTab extends PluginSettingTab {
                     }),
             );
 
-        // File node size settings (note content)
+        // File node size (note content)
         new Setting(containerEl)
             .setName("File nodes (note content)")
             .setDesc("Configure size settings for note content");
@@ -266,6 +266,26 @@ export class SettingsTab extends PluginSettingTab {
                             await this.plugin.saveSettings();
                         }
                     }),
+            );
+        
+        // Status bar
+        new Setting(containerEl)
+            .setName("Status bar")
+            .setDesc("Customize the status bar display")
+            .setHeading();
+        
+        new Setting(containerEl)
+            .setName("Maximum Canvas filename length")
+            .setDesc("Maximum number of characters to display for Canvas filenames in the status bar. Longer filenames will be truncated with an ellipsis.")
+            .addSlider(slider => slider
+                .setLimits(5, 50, 5)
+                .setValue(this.plugin.settings.statusBarMaxFilenameLength)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.plugin.settings.statusBarMaxFilenameLength = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateStatusBar(); // Update immediately to show effect
+                })
             );
     }
 }

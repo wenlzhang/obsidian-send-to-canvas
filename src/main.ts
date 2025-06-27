@@ -1034,6 +1034,22 @@ export default class Main extends Plugin {
         }
     }
 
+    /**
+     * Truncates a filename to the specified maximum length,
+     * adding an ellipsis if truncated
+     * @param filename The filename to truncate
+     * @param maxLength Maximum length before truncation
+     * @returns Truncated filename
+     */
+    truncateFilename(filename: string, maxLength: number): string {
+        if (filename.length <= maxLength) {
+            return filename;
+        }
+        
+        // Truncate and add ellipsis
+        return filename.slice(0, maxLength) + '…';
+    }
+    
     updateStatusBar() {
         if (!this.statusBarItem) return;
 
@@ -1041,15 +1057,28 @@ export default class Main extends Plugin {
         this.statusBarItem.empty();
 
         if (this.selectedCanvas) {
+            const truncatedName = this.truncateFilename(
+                this.selectedCanvas.basename,
+                this.settings.statusBarMaxFilenameLength
+            );
+            
             this.statusBarItem.setText(
-                `Canvas: ${this.selectedCanvas.basename}`,
+                `Canvas: ${truncatedName}`,
             );
             this.statusBarItem.addClass("has-canvas-selected");
             this.statusBarItem.removeClass("no-canvas-selected");
+            
+            // Add tooltip with the full filename if truncated
+            if (truncatedName !== this.selectedCanvas.basename) {
+                this.statusBarItem.setAttribute("aria-label", this.selectedCanvas.basename);
+            } else {
+                this.statusBarItem.removeAttribute("aria-label");
+            }
         } else {
             this.statusBarItem.setText("No Canvas selected");
             this.statusBarItem.addClass("no-canvas-selected");
             this.statusBarItem.removeClass("has-canvas-selected");
+            this.statusBarItem.removeAttribute("aria-label");
         }
     }
 
