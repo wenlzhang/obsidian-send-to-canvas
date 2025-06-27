@@ -33,7 +33,7 @@ export default class Main extends Plugin {
     async onload() {
         await this.loadSettings();
 
-        // Add status bar item for selected canvas
+        // Add status bar item for selected Canvas
         this.statusBarItem = this.addStatusBarItem();
         this.statusBarItem.addClass("send-to-canvas-status");
 
@@ -44,7 +44,7 @@ export default class Main extends Plugin {
 
         this.updateStatusBar(); // Initialize the status bar immediately
 
-        // Wait for Obsidian layout to be ready before loading canvas files
+        // Wait for Obsidian layout to be ready before loading Canvas files
         this.app.workspace.onLayoutReady(() => {
             this.loadCanvasFile();
             this.updateStatusBar();
@@ -53,16 +53,16 @@ export default class Main extends Plugin {
         // Add settings tab
         this.addSettingTab(new SettingsTab(this.app, this));
 
-        // Add command to select a canvas file
+        // Add command to select a Canvas file
         this.addCommand({
             id: "select-canvas-file",
-            name: "Select a canvas file",
+            name: "Select a Canvas file",
             callback: () => {
                 this.selectCanvasFile();
             },
         });
 
-        // Add command to send selection to canvas as plain text
+        // Add command to send selection to Canvas as plain text
         this.addCommand({
             id: "send-block-text",
             name: "Send block text",
@@ -71,7 +71,7 @@ export default class Main extends Plugin {
             },
         });
 
-        // Add command to send selection to canvas as block link
+        // Add command to send selection to Canvas as block link
         this.addCommand({
             id: "send-block-link",
             name: "Send block link",
@@ -80,7 +80,7 @@ export default class Main extends Plugin {
             },
         });
 
-        // Add command to send selection to canvas as block embed
+        // Add command to send selection to Canvas as block embed
         this.addCommand({
             id: "send-block-embed",
             name: "Send block embed",
@@ -89,7 +89,7 @@ export default class Main extends Plugin {
             },
         });
 
-        // Add command to send note link to canvas
+        // Add command to send note link to Canvas
         this.addCommand({
             id: "send-note-link",
             name: "Send note link",
@@ -98,7 +98,7 @@ export default class Main extends Plugin {
             },
         });
 
-        // Add command to send the current note to canvas
+        // Add command to send the current note to Canvas
         this.addCommand({
             id: "send-note-embed",
             name: "Send note embed",
@@ -142,7 +142,7 @@ export default class Main extends Plugin {
             DEFAULT_SETTINGS,
             await this.loadData(),
         );
-        // Don't try to load the canvas file here - we'll do it after the workspace is ready
+        // Don't try to load the Canvas file here - we'll do it after the workspace is ready
     }
 
     async loadCanvasFile() {
@@ -152,7 +152,7 @@ export default class Main extends Plugin {
             this.settings.lastCanvasPath.length > 0
         ) {
             try {
-                // Try to find the canvas file
+                // Try to find the Canvas file
                 const file = this.findCanvasFile(this.settings.lastCanvasPath);
 
                 if (file) {
@@ -166,9 +166,9 @@ export default class Main extends Plugin {
 
                     // Only show notification and update UI if rememberLastCanvas is enabled
                     if (this.settings.rememberLastCanvas) {
-                        // Update the status bar with the loaded canvas
+                        // Update the status bar with the loaded Canvas
                         this.updateStatusBar();
-                        // Show a subtle notification that a canvas was automatically selected
+                        // Show a subtle notification that a Canvas was automatically selected
                         new Notice(`Canvas loaded: ${file.basename}`, 2000);
                     }
                 } else {
@@ -177,7 +177,7 @@ export default class Main extends Plugin {
                     await this.saveSettings();
                 }
             } catch (error) {
-                // Error loading canvas file
+                // Error loading Canvas file
                 // Don't clear the path here, as it might be a temporary error
             }
         }
@@ -185,7 +185,7 @@ export default class Main extends Plugin {
 
     async saveSettings() {
         try {
-            // Always save the current canvas path if one is selected
+            // Always save the current Canvas path if one is selected
             if (this.selectedCanvas) {
                 // Ensure we're saving the full path
                 this.settings.lastCanvasPath = this.selectedCanvas.path;
@@ -201,7 +201,7 @@ export default class Main extends Plugin {
     selectCanvasFile() {
         const canvasFiles = this.getCanvasFiles();
         if (!canvasFiles.length) {
-            new Notice("No canvas files found in vault");
+            new Notice("No Canvas files found in vault");
             return;
         }
 
@@ -211,7 +211,7 @@ export default class Main extends Plugin {
             async (file: TFile) => {
                 this.selectedCanvas = file;
 
-                // Save the selected canvas path to settings - ensure it's the full path
+                // Save the selected Canvas path to settings - ensure it's the full path
                 this.settings.lastCanvasPath = file.path;
 
                 await this.saveSettings();
@@ -222,7 +222,7 @@ export default class Main extends Plugin {
                     : "This selection will be valid until you close Obsidian.";
 
                 new Notice(
-                    `Selected canvas: ${file.basename}\n${persistenceInfo}`,
+                    `Selected Canvas: ${file.basename}\n${persistenceInfo}`,
                 );
 
                 // Update the status bar
@@ -235,9 +235,9 @@ export default class Main extends Plugin {
     }
 
     async sendSelectionToCanvas(editor: Editor, format: SendFormat) {
-        // Check if a canvas file is selected
+        // Check if a Canvas file is selected
         if (!this.selectedCanvas) {
-            new Notice("Please select a canvas file first");
+            new Notice("Please select a Canvas file first");
             this.selectCanvasFile();
             return;
         }
@@ -246,13 +246,13 @@ export default class Main extends Plugin {
         const currentView =
             this.app.workspace.getActiveViewOfType(MarkdownView);
         if (!currentView) {
-            new Notice("No active markdown file");
+            new Notice("No active Markdown file");
             return;
         }
 
         const currentFile = currentView.file;
         if (!currentFile) {
-            new Notice("Could not determine the current file");
+            new Notice("Could not determine the current Markdown file");
             return;
         }
 
@@ -275,7 +275,7 @@ export default class Main extends Plugin {
             }
         }
 
-        // We don't want to modify the content for the canvas directly
+        // We don't want to modify the content for the Canvas directly
         // Only when creating a block ID for source file
         let contentToSend = textToSend;
 
@@ -301,16 +301,16 @@ export default class Main extends Plugin {
                 }
             }
 
-            // Add the content to the canvas
+            // Add the content to the Canvas
             await this.addToCanvas(format, contentToSend, currentFile, blockId);
 
             // Restore the original cursor position
             editor.setCursor(originalCursor);
 
-            new Notice(`Selection sent to canvas: ${this.selectedCanvas.name}`);
+            new Notice(`Selection sent to Canvas: ${this.selectedCanvas.basename}`);
         } catch (error) {
-            console.error("Error sending selection to canvas:", error);
-            new Notice("Error sending selection to canvas");
+            console.error("Error sending selection to Canvas:", error);
+            new Notice("Error sending selection to Canvas");
 
             // Restore the cursor position even if there was an error
             editor.setCursor(originalCursor);
@@ -319,7 +319,7 @@ export default class Main extends Plugin {
 
     async sendCurrentNoteToCanvas() {
         if (!this.selectedCanvas) {
-            new Notice("Please select a canvas file first");
+            new Notice("Please select a Canvas file first");
             this.selectCanvasFile();
             return;
         }
@@ -327,29 +327,29 @@ export default class Main extends Plugin {
         const currentView =
             this.app.workspace.getActiveViewOfType(MarkdownView);
         if (!currentView) {
-            new Notice("No active markdown file");
+            new Notice("No active Markdown file");
             return;
         }
 
         const currentFile = currentView.file;
         if (!currentFile) {
-            new Notice("Could not determine the current file");
+            new Notice("Could not determine the current Markdown file");
             return;
         }
 
         try {
             await this.addNoteToCanvas(currentFile);
-            new Notice(`Note sent to canvas: ${this.selectedCanvas.name}`);
+            new Notice(`Note sent to Canvas: ${this.selectedCanvas.basename}`);
         } catch (error) {
             new Notice(
-                `Failed to send note to canvas: ${error.message || "Unknown error"}`,
+                `Failed to send note to Canvas: ${error.message || "Unknown error"}`,
             );
         }
     }
 
     async sendNoteAsLinkToCanvas() {
         if (!this.selectedCanvas) {
-            new Notice("Please select a canvas file first");
+            new Notice("Please select a Canvas file first");
             this.selectCanvasFile();
             return;
         }
@@ -357,22 +357,22 @@ export default class Main extends Plugin {
         const currentView =
             this.app.workspace.getActiveViewOfType(MarkdownView);
         if (!currentView) {
-            new Notice("No active markdown file");
+            new Notice("No active Markdown file");
             return;
         }
 
         const currentFile = currentView.file;
         if (!currentFile) {
-            new Notice("Could not determine the current file");
+            new Notice("Could not determine the current Markdown file");
             return;
         }
 
         try {
             await this.addNoteAsLinkToCanvas(currentFile);
-            new Notice(`Note link sent to canvas: ${this.selectedCanvas.name}`);
+            new Notice(`Note link sent to Canvas: ${this.selectedCanvas.basename}`);
         } catch (error) {
             new Notice(
-                `Failed to send note link to canvas: ${
+                `Failed to send note link to Canvas: ${
                     error.message || "Unknown error"
                 }`,
             );
@@ -444,7 +444,7 @@ export default class Main extends Plugin {
         return files.filter((file) => file.extension === "canvas");
     }
 
-    // Helper method to find a canvas file by name or path
+    // Helper method to find a Canvas file by name or path
     findCanvasFile(nameOrPath: string): TFile | null {
         // First try to get by exact path - this is the most efficient method
         const fileByPath = this.app.vault.getAbstractFileByPath(nameOrPath);
@@ -469,7 +469,7 @@ export default class Main extends Plugin {
 
     /**
      * Calculates a position for a new node based on existing nodes
-     * @param nodes Existing nodes in the canvas
+     * @param nodes Existing nodes in the Canvas
      * @returns Position for the new node
      */
     calculateNewNodePosition(nodes: CanvasNodeData[]): {
@@ -511,7 +511,7 @@ export default class Main extends Plugin {
     }
 
     /**
-     * Generates a unique ID for a canvas node
+     * Generates a unique ID for a Canvas node
      * @returns A unique ID string
      */
     generateNodeId(): string {
@@ -647,18 +647,18 @@ export default class Main extends Plugin {
         blockId = "",
     ): Promise<void> {
         if (!this.selectedCanvas) {
-            new Notice("No canvas selected");
+            new Notice("No Canvas selected");
             return;
         }
 
-        // Read the canvas file
+        // Read the Canvas file
         let canvasContent: string;
         try {
             canvasContent = await this.app.vault.read(this.selectedCanvas);
 
-            // Check if the canvas content is empty or too short to be valid JSON
+            // Check if the Canvas content is empty or too short to be valid JSON
             if (!canvasContent || canvasContent.trim().length < 2) {
-                // Initialize with empty canvas structure
+                // Initialize with empty Canvas structure
                 canvasContent = JSON.stringify({ nodes: [], edges: [] });
 
                 // Save the initialized structure to the file
@@ -669,10 +669,10 @@ export default class Main extends Plugin {
             }
         } catch (error) {
             if (this.debugMode) {
-                console.error("Error reading canvas file:", error);
+                console.error("Error reading Canvas file:", error);
             }
             new Notice(
-                `Failed to read canvas file: ${error.message || "Unknown error"}`,
+                `Failed to read Canvas file: ${error.message || "Unknown error"}`,
             );
             return;
         }
@@ -687,13 +687,13 @@ export default class Main extends Plugin {
             if (!canvasData.edges) canvasData.edges = [];
         } catch (error) {
             if (this.debugMode) {
-                console.error("Error parsing canvas file:", error);
+                console.error("Error parsing Canvas file:", error);
             }
             new Notice(
-                "Error parsing canvas file. It may not be in the expected format.",
+                "Error parsing Canvas file. It may not be in the expected format.",
             );
 
-            // Try to recover by creating a new canvas structure
+            // Try to recover by creating a new Canvas structure
             canvasData = { nodes: [], edges: [] };
         }
 
@@ -795,7 +795,7 @@ export default class Main extends Plugin {
             }
         } else {
             // Plain text - use content as is without appending text to open tasks
-            // Don't modify the content for the canvas, only for source files
+            // Don't modify the content for the Canvas, only for source files
 
             // Use content node dimensions
             nodeWidth = this.settings.contentNodeWidth;
@@ -813,20 +813,20 @@ export default class Main extends Plugin {
             text: textContent,
         };
 
-        // Add the new node to the canvas
+        // Add the new node to the Canvas
         canvasData.nodes.push(newNode);
 
-        // Save the modified canvas
+        // Save the modified Canvas
         try {
             await this.app.vault.process(this.selectedCanvas, (data) =>
                 JSON.stringify(canvasData, null, 2),
             );
         } catch (error) {
             if (this.debugMode) {
-                console.error("Error saving canvas:", error);
+                console.error("Error saving Canvas:", error);
             }
             new Notice(
-                `Failed to save canvas: ${error.message || "Unknown error"}`,
+                `Failed to save Canvas: ${error.message || "Unknown error"}`,
             );
         }
     }
@@ -834,14 +834,14 @@ export default class Main extends Plugin {
     async addNoteToCanvas(noteFile: TFile) {
         if (!this.selectedCanvas) return;
 
-        // Read the canvas file
+        // Read the Canvas file
         let canvasContent: string;
         try {
             canvasContent = await this.app.vault.read(this.selectedCanvas);
 
-            // Check if the canvas content is empty or too short to be valid JSON
+            // Check if the Canvas content is empty or too short to be valid JSON
             if (!canvasContent || canvasContent.trim().length < 2) {
-                // Initialize with empty canvas structure
+                // Initialize with empty Canvas structure
                 canvasContent = JSON.stringify({ nodes: [], edges: [] });
 
                 // Save the initialized structure to the file
@@ -852,10 +852,10 @@ export default class Main extends Plugin {
             }
         } catch (error) {
             if (this.debugMode) {
-                console.error("Error reading canvas file:", error);
+                console.error("Error reading Canvas file:", error);
             }
             new Notice(
-                `Failed to read canvas file: ${error.message || "Unknown error"}`,
+                `Failed to read Canvas file: ${error.message || "Unknown error"}`,
             );
             return;
         }
@@ -870,13 +870,13 @@ export default class Main extends Plugin {
             if (!canvasData.edges) canvasData.edges = [];
         } catch (error) {
             if (this.debugMode) {
-                console.error("Error parsing canvas file:", error);
+                console.error("Error parsing Canvas file:", error);
             }
             new Notice(
-                "Error parsing canvas file. It may not be in the expected format.",
+                "Error parsing Canvas file. It may not be in the expected format.",
             );
 
-            // Try to recover by creating a new canvas structure
+            // Try to recover by creating a new Canvas structure
             canvasData = { nodes: [], edges: [] };
         }
 
@@ -894,22 +894,22 @@ export default class Main extends Plugin {
             height: this.settings.fileNodeHeight,
         };
 
-        // Add the new node to the canvas
+        // Add the new node to the Canvas
         canvasData.nodes.push(newNode);
 
-        // Save the modified canvas
+        // Save the modified Canvas
         try {
             await this.app.vault.process(this.selectedCanvas, (data) =>
                 JSON.stringify(canvasData, null, 2),
             );
 
-            new Notice(`Note sent to canvas: ${this.selectedCanvas.name}`);
+            new Notice(`Note sent to Canvas: ${this.selectedCanvas.name}`);
         } catch (error) {
             if (this.debugMode) {
-                console.error("Error saving canvas:", error);
+                console.error("Error saving Canvas:", error);
             }
             new Notice(
-                `Failed to save canvas: ${error.message || "Unknown error"}`,
+                `Failed to save Canvas: ${error.message || "Unknown error"}`,
             );
         }
     }
@@ -917,14 +917,14 @@ export default class Main extends Plugin {
     async addNoteAsLinkToCanvas(noteFile: TFile) {
         if (!this.selectedCanvas) return;
 
-        // Read the canvas file
+        // Read the Canvas file
         let canvasContent: string;
         try {
             canvasContent = await this.app.vault.read(this.selectedCanvas);
 
-            // Check if the canvas content is empty or too short to be valid JSON
+            // Check if the Canvas content is empty or too short to be valid JSON
             if (!canvasContent || canvasContent.trim().length < 2) {
-                // Initialize with empty canvas structure
+                // Initialize with empty Canvas structure
                 canvasContent = JSON.stringify({ nodes: [], edges: [] });
 
                 // Save the initialized structure to the file
@@ -935,10 +935,10 @@ export default class Main extends Plugin {
             }
         } catch (error) {
             if (this.debugMode) {
-                console.error("Error reading canvas file:", error);
+                console.error("Error reading Canvas file:", error);
             }
             new Notice(
-                `Failed to read canvas file: ${error.message || "Unknown error"}`,
+                `Failed to read Canvas file: ${error.message || "Unknown error"}`,
             );
             return;
         }
@@ -953,13 +953,13 @@ export default class Main extends Plugin {
             if (!canvasData.edges) canvasData.edges = [];
         } catch (error) {
             if (this.debugMode) {
-                console.error("Error parsing canvas file:", error);
+                console.error("Error parsing Canvas file:", error);
             }
             new Notice(
-                "Error parsing canvas file. It may not be in the expected format.",
+                "Error parsing Canvas file. It may not be in the expected format.",
             );
 
-            // Try to recover by creating a new canvas structure
+            // Try to recover by creating a new Canvas structure
             canvasData = { nodes: [], edges: [] };
         }
 
@@ -988,20 +988,20 @@ export default class Main extends Plugin {
             height: this.settings.linkNodeHeight,
         };
 
-        // Add the new node to the canvas
+        // Add the new node to the Canvas
         canvasData.nodes.push(newNode);
 
-        // Save the modified canvas
+        // Save the modified Canvas
         try {
             await this.app.vault.process(this.selectedCanvas, (data) =>
                 JSON.stringify(canvasData, null, 2),
             );
         } catch (error) {
             if (this.debugMode) {
-                console.error("Error saving canvas:", error);
+                console.error("Error saving Canvas:", error);
             }
             new Notice(
-                `Failed to save canvas: ${error.message || "Unknown error"}`,
+                `Failed to save Canvas: ${error.message || "Unknown error"}`,
             );
         }
     }
@@ -1025,9 +1025,9 @@ export default class Main extends Plugin {
         }
     }
 
-    // Debug method to test canvas file finding
+    // Debug method to test Canvas file finding
     debugCanvasFinding() {
-        // Log all canvas files in the vault
+        // Log all Canvas files in the vault
         const allCanvasFiles = this.getCanvasFiles();
 
         // If we have a saved path, try to find it
@@ -1035,15 +1035,15 @@ export default class Main extends Plugin {
             const found = this.findCanvasFile(this.settings.lastCanvasPath);
         }
 
-        // Show a notice with the number of canvas files
+        // Show a notice with the number of Canvas files
         new Notice(
-            `Found ${allCanvasFiles.length} canvas files in vault. Check console for details.`,
+            `Found ${allCanvasFiles.length} Canvas files in vault. Check console for details.`,
         );
     }
 
     // Helper method to append text to open tasks if settings enabled
     // When modifySourceOnly is true, it only returns modified text for updating the source file
-    // When modifySourceOnly is false, it modifies text for both source file and canvas content
+    // When modifySourceOnly is false, it modifies text for both source file and Canvas content
     appendTextToOpenTask(text: string, modifySourceOnly = false): string {
         if (
             !text ||
@@ -1053,7 +1053,7 @@ export default class Main extends Plugin {
             return text;
         }
 
-        // If we're only supposed to modify the source file and this is for canvas content, return unmodified
+        // If we're only supposed to modify the source file and this is for Canvas content, return unmodified
         if (modifySourceOnly) {
             // Only append if the text doesn't already contain the append text
             if (!text.includes(this.settings.openTaskAppendText)) {
@@ -1077,7 +1077,7 @@ export default class Main extends Plugin {
     }
 }
 
-// Modal for selecting canvas files
+// Modal for selecting Canvas files
 class CanvasFileSuggestModal extends FuzzySuggestModal<TFile> {
     files: TFile[];
     onSelect: (file: TFile) => void;

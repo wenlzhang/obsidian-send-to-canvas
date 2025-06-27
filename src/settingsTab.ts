@@ -26,7 +26,7 @@ export class SettingsTab extends PluginSettingTab {
                     .onChange(async (value) => {
                         this.plugin.settings.rememberLastCanvas = value;
                         // Don't clear the lastCanvasPath when toggling off
-                        // This allows the user to toggle it back on and have the last canvas still selected
+                        // This allows the user to toggle it back on and have the last Canvas still selected
                         await this.plugin.saveSettings();
                     }),
             );
@@ -74,7 +74,7 @@ export class SettingsTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName("Block ID")
             .setDesc(
-                "You can customize the format of block IDs created when sending content to canvas. By default, random alphanumeric IDs are used.",
+                "You can customize the format of block IDs created when sending content to Canvas. By default, random alphanumeric IDs are used.",
             )
             .setHeading();
 
@@ -116,7 +116,7 @@ export class SettingsTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName("Link timestamp")
             .setDesc(
-                "You can append a timestamp after links and embeds sent to canvas. This helps track when content was added to the canvas.",
+                "You can append a timestamp after links and embeds sent to Canvas. This helps track when content was added to the Canvas.",
             )
             .setHeading();
 
@@ -158,7 +158,7 @@ export class SettingsTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName("Canvas node size")
             .setDesc(
-                "Customize the dimensions of nodes created in canvas files. Default sizes are 400×100 for links, 400×200 for content, and 400×400 for note content.",
+                "Customize the dimensions of nodes created in Canvas files. Default sizes are 400×100 for links, 400×200 for content, and 400×400 for note content.",
             )
             .setHeading();
 
