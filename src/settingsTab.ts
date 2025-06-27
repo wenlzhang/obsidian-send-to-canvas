@@ -143,15 +143,16 @@ export class SettingsTab extends PluginSettingTab {
                 .setDesc(
                     "MomentJS format for the timestamp to append after links",
                 )
-                .addText((text) =>
-                    text
+                .addMomentFormat((component) => {
+                    component
                         .setPlaceholder("[📝 ]YYYY-MM-DDTHH:mm")
                         .setValue(this.plugin.settings.appendTimestampFormat)
+                        .setDefaultFormat("[📝 ]YYYY-MM-DDTHH:mm")
                         .onChange(async (value) => {
                             this.plugin.settings.appendTimestampFormat = value;
                             await this.plugin.saveSettings();
-                        }),
-                );
+                        });
+                });
         }
 
         // Canvas node size settings
