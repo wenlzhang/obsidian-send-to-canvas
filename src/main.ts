@@ -1058,12 +1058,12 @@ export default class Main extends Plugin {
 
         if (this.selectedCanvas) {
             let displayName = this.selectedCanvas.basename;
-            
+
             // Only truncate if the setting is enabled
             if (this.settings.truncateFilenames) {
                 displayName = this.truncateFilename(
                     displayName,
-                    this.settings.statusBarMaxFilenameLength
+                    this.settings.statusBarMaxFilenameLength,
                 );
             }
 
@@ -1075,7 +1075,7 @@ export default class Main extends Plugin {
             if (displayName !== this.selectedCanvas.basename) {
                 this.statusBarItem.setAttribute(
                     "aria-label",
-                    this.selectedCanvas.basename
+                    this.selectedCanvas.basename,
                 );
             } else {
                 this.statusBarItem.removeAttribute("aria-label");

@@ -273,42 +273,55 @@ export class SettingsTab extends PluginSettingTab {
             .setName("Status bar")
             .setDesc("Customize the status bar display")
             .setHeading();
-        
+
         // Create a container for the truncation settings group
-        const truncateSettingContainer = containerEl.createDiv("truncate-settings-container");
-        
+        const truncateSettingContainer = containerEl.createDiv(
+            "truncate-settings-container",
+        );
+
         // Toggle for truncating Canvas filenames
         new Setting(truncateSettingContainer)
             .setName("Truncate Canvas filenames")
-            .setDesc("When enabled, Canvas filenames in the status bar will be truncated if they exceed the maximum length.")
-            .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.truncateFilenames)
-                .onChange(async (value) => {
-                    this.plugin.settings.truncateFilenames = value;
-                    await this.plugin.saveSettings();
-                    this.display(); // Refresh to show/hide the slider
-                    this.plugin.updateStatusBar(); // Update immediately to show effect
-                })
+            .setDesc(
+                "When enabled, Canvas filenames in the status bar will be truncated if they exceed the maximum length.",
+            )
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(this.plugin.settings.truncateFilenames)
+                    .onChange(async (value) => {
+                        this.plugin.settings.truncateFilenames = value;
+                        await this.plugin.saveSettings();
+                        this.display(); // Refresh to show/hide the slider
+                        this.plugin.updateStatusBar(); // Update immediately to show effect
+                    }),
             );
-        
+
         // Only show the slider if truncation is enabled
         if (this.plugin.settings.truncateFilenames) {
             // Create an indented div for the slider to visually show it belongs to the toggle above
-            const sliderContainer = truncateSettingContainer.createDiv("truncate-slider-container");
+            const sliderContainer = truncateSettingContainer.createDiv(
+                "truncate-slider-container",
+            );
             sliderContainer.style.paddingLeft = "24px"; // Indent to show hierarchy
-            
+
             new Setting(sliderContainer)
                 .setName("Maximum filename length")
-                .setDesc("Maximum number of characters to display for Canvas filenames in the status bar. Longer filenames will be truncated with an ellipsis.")
-                .addSlider(slider => slider
-                    .setLimits(5, 100, 5) // Increased to 100 to handle longer filenames
-                    .setValue(this.plugin.settings.statusBarMaxFilenameLength)
-                    .setDynamicTooltip()
-                    .onChange(async (value) => {
-                        this.plugin.settings.statusBarMaxFilenameLength = value;
-                        await this.plugin.saveSettings();
-                        this.plugin.updateStatusBar(); // Update immediately to show effect
-                    })
+                .setDesc(
+                    "Maximum number of characters to display for Canvas filenames in the status bar. Longer filenames will be truncated with an ellipsis.",
+                )
+                .addSlider((slider) =>
+                    slider
+                        .setLimits(5, 100, 5) // Increased to 100 to handle longer filenames
+                        .setValue(
+                            this.plugin.settings.statusBarMaxFilenameLength,
+                        )
+                        .setDynamicTooltip()
+                        .onChange(async (value) => {
+                            this.plugin.settings.statusBarMaxFilenameLength =
+                                value;
+                            await this.plugin.saveSettings();
+                            this.plugin.updateStatusBar(); // Update immediately to show effect
+                        }),
                 );
         }
     }
